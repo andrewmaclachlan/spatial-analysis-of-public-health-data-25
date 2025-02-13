@@ -1,0 +1,45 @@
+project:
+  type: book
+  output-dir: docs
+
+book:
+  title: "Spatial analysis of public health data"
+#  date: "24/01/2024"
+  chapters:
+    - index.qmd
+    - software.qmd
+    - 01_geographic_data.qmd
+    - 02_point_patterns.qmd
+    - 03_obesity.qmd
+    - 04_spatial_models.qmd
+    - 05_food_bank_accessibility.qmd
+    - 06_datasets.qmd
+    
+  navbar:
+    logo: general_images/casa_logo.jpg
+    collapse: true
+    collapse-below: lg
+    background: light
+    #reader-mode: true
+    search: true
+    right:
+      - icon: github
+  sidebar:
+    title: "Spatial analysis of health data"
+    style: floating
+    reader-mode: true
+  repo-url: https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-24
+  repo-actions: [edit, issue]  
+  favicon: "assets/favicon.ico"	
+
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+editor: visual
+

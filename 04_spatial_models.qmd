@@ -1,0 +1,904 @@
+# Spatial models
+
+::: callout-note
+**Reading**
+
+-   [Chapter 7 "Linear Regression"](https://argoshare.is.ed.ac.uk/healthyr_book/chap07-h1.html) from R for Health Data Science by Ewen Harrison and Riinu Pius (2021). **This chapter is excellent, especially section 7.1**.
+
+-   [Chapter 9 Spatial regression models](https://maczokni.github.io/crime_mapping_textbook/spatial-regression-models.html) from Crime Mapping in R by Juanjo Medina and Reka Solymosi (2019).
+
+-   [GWR a road map](https://onlinelibrary.wiley.com/doi/full/10.1111/gean.12316) by Comber et al. 2022.There are related papers that have added to this discussion, such as:
+
+    -   [Taylor Oshan](https://onlinelibrary.wiley.com/doi/full/10.1111/gean.12345)
+    -   [Levi Wolf](https://onlinelibrary.wiley.com/doi/10.1111/gean.12346)
+:::
+
+## Introduction
+
+In this practical you will be introduced to a suite of different models that will allow you to test a variety of research questions and hypotheses through modelling the associations between two or more spatially referenced variables.
+
+In 2023 New Zealand scrapped an anti-smoking law that would mean a generational smoking bad for anyone born after 2008. So, here we will explore the factors that might affect smoking in New Zealand and see if they vary spatially.
+
+This practical will walk you through the common steps that you should go through when building a regression model using spatial data to test a stated research hypothesis; from carrying out some descriptive visualisation and summary statistics, to interpreting the results and using the outputs of the model to inform your next steps.
+
+## Data
+
+This is the same has homework 1....
+
+-   Go to the [New Zealand spatial data portal](https://datafinder.stats.govt.nz/) and download the file Territorial Authority 2018 (generalised), [these are city or district councils](https://www.localcouncils.govt.nz/lgip.nsf/wpg_url/About-Local-Government-Local-Government-In-New-Zealand-Councils-roles-and-functions#TerritorialAuthorities(District%20and%20City%20Councils)). Make sure it's the Territorial Authority 2018 data **not** SA1.
+
+-   Go to the [Stats NZ website](https://www.stats.govt.nz/information-releases/statistical-area-1-dataset-for-2018-census-updated-march-2020) and download the Statistical area 1 dataset for 2018 for the whole of New Zealand. **Download the csv this time**
+
+The figure below explains the geographies of New Zealand, we could replicate this analysis for SA1 or SA2 data.
+
+[![NZ geographies](prac4_images/Figure-1_GeoHierarchy_Diagram-with-legend-changes.jpg){fig-align="center" width="100%"}](https://www.stats.govt.nz/methods/geographic-hierarchy#:~:text=Moving%20up%20the%20hierarchy%2C%20statistical,and%20territorial%20authorities%20and%20represent)
+
+### Loading
+
+```{r warning=FALSE, message=FALSE}
+library(sf)
+library(tidyverse)
+
+ta <- st_read("prac4_data/statsnzterritorial-authority-2018-generalised-SHP/territorial-authority-2018-generalised.shp")
+
+census <- read_csv("prac4_data/SA1_census/Individual_part2_totalNZ-wide_format_updated_16-7-20.csv")
+
+```
+
+### Wrangle
+
+The `.csv` we have loaded contains all the data from the week 1 excel homework in a wide format - that means all the SA1s, SA2s and so are are a new row making a huge data file. Normally i would suggest a cool data sciency way to pull out our Territorial Authorities, however i can't see anything that would work. For example, we could try and detect part of a string like "City" or "District" however they appear in other geographies.
+
+So, until i can think or a better way we are resigned to subsetting by rows!
+
+```{r, warning=FALSE, message=FALSE}
+library(janitor)
+
+census_authorities <- census %>%
+  slice(32413:32480) %>%
+  clean_names()
+
+# or
+
+#census_authorities <- census[32413:32480,]%>%
+#  clean_names()
+
+```
+
+Now in this case the data can be a little hard to read - we have over 350 columns! It might be sensible here to have a look at the excel document we downloaded in the week 1 homework to identify our our variables.
+
+Let's pull out the following variables from the 2018 data:
+
+-   regular smoker
+
+that will be modeled by:
+
+-   median income
+-   home ownership
+-   no qualification, [see the New Zealand gov careers website for what qualification levels mean](https://www.careers.govt.nz/articles/ncea-compared-with-school-c-and-bursary/#cID_8307)
+-   we'll also try and include some spatial data (e.g. density of tobacco shops) at the very end...
+
+However, because we are using spatial units and they may differ in size we should normalise our count data (everything but median income which is continous).
+
+To do so i will use the "total" column for each variable, although you could also use [population count](https://www.stats.govt.nz/information-releases/2018-census-population-and-dwelling-counts#:~:text=The%202018%20Census%20usually%20resident,and%202013%20(0.7%20percent).)
+
+```{r}
+
+census_authorities_data <- census_authorities %>%
+  select(area_code,
+         area_description,
+         census_2018_smoking_status_01_regular_smoker_curp_15years_and_over,
+         census_2018_smoking_status_total_stated_curp_15years_and_over,
+         census_2018_total_personal_income_median_curp_15years_and_over,
+         census_2018_individual_home_ownership_02_own_or_partly_own_curp_15years_and_over,
+         census_2018_individual_home_ownership_total_stated_curp_15years_and_over,
+         census_2018_highest_qualification_000_no_qualification_curp_15years_and_over,
+         census_2018_highest_qualification_total_stated_curp_15years_and_over
+         )
+
+```
+
+Let's check the type of our data...
+
+```{r}
+datatypelist <- census_authorities_data %>% 
+  summarise_all(class) %>%
+  pivot_longer(everything(), 
+               names_to="All_variables", 
+               values_to="Variable_class")
+
+datatypelist
+```
+
+Character! we will need to change that...
+
+```{r}
+census_authorities_data <- census_authorities_data %>%
+  mutate_at(c("census_2018_smoking_status_01_regular_smoker_curp_15years_and_over",
+        "census_2018_smoking_status_total_stated_curp_15years_and_over",
+         "census_2018_total_personal_income_median_curp_15years_and_over",
+         "census_2018_individual_home_ownership_02_own_or_partly_own_curp_15years_and_over",
+         "census_2018_individual_home_ownership_total_stated_curp_15years_and_over",
+         "census_2018_highest_qualification_000_no_qualification_curp_15years_and_over",
+         "census_2018_highest_qualification_total_stated_curp_15years_and_over"),
+        as.numeric)
+```
+
+The data is selected and now numeric... let's normalise...and select what we need
+
+```{r}
+census_authorities_data_norm <- census_authorities_data%>%
+  mutate(percent_regular_smoker=
+           (census_2018_smoking_status_01_regular_smoker_curp_15years_and_over/census_2018_smoking_status_total_stated_curp_15years_and_over)*100)%>%
+  mutate(percent_home_owner=
+           (census_2018_individual_home_ownership_02_own_or_partly_own_curp_15years_and_over/census_2018_individual_home_ownership_total_stated_curp_15years_and_over)*100)%>%
+  mutate(percent_no_qualification=
+           (census_2018_highest_qualification_000_no_qualification_curp_15years_and_over/ census_2018_highest_qualification_total_stated_curp_15years_and_over)*100)%>%
+  select(area_code,
+         area_description,
+         percent_regular_smoker,
+         percent_home_owner,
+         percent_no_qualification,
+         census_2018_total_personal_income_median_curp_15years_and_over
+         )
+  
+```
+
+Quick plot...
+
+```{r warning=FALSE, message=FALSE}
+library(ggplot2)
+
+q <- qplot(x = percent_no_qualification, 
+           y = percent_regular_smoker, 
+           data=census_authorities_data_norm)
+
+q + stat_smooth(method="lm", se=FALSE, size=1) 
+```
+
+Here, I have plotted the percentage of regular smokers per territorial area against another variable in the dataset that I think might be influential...percentage with no qualification
+
+Remember that my *null hypothesis* would be that there is no relationship between percentage of regular smokers and percentage with no qualification. If this null hypothesis was true, then I would not expect to see any pattern in the cloud of points plotted above.
+
+As it is, the scatter plot shows that, generally, as the $x$ axis *independent variable* (percentage with no qualification) goes up, our $y$ axis *dependent variable* (percent of smokers) goes up. This is not a random cloud of points, but something that indicates there could be a relationship here and so I might be looking to reject my null hypothesis.
+
+**Some conventions** - In a regression equation, the dependent variable is always labelled $y$ and shown on the $y$ axis of a graph, the predictor or independent variable(s) is(are) always shown on the $x$ axis.
+
+I have added a blue line of best-fit - this is the line that can be drawn by minimising the sum of the squared differences between the line and the residuals. The residuals are all of the dots not falling exactly on the blue line. An algorithm known as 'ordinary least squares' (OLS) is used to draw this line and it simply tries a selection of different lines until the sum of the squared differences between all of the residuals and the blue line is minimised, leaving the final solution.
+
+As a general rule, the better the blue line is at summarising the relationship between $y$ and $x$, the better the model.
+
+The equation for the blue line in the graph above can be written:
+
+$$y_i = \beta_0 + \beta_1x_i + \epsilon_i$$
+
+where:
+
+$\beta_0$ is the intercept (the value of $y$ when $x = 0$ - somewhere around 4 on the graph above);
+
+$\beta_1$ is sometimes referred to as the 'slope' parameter and is simply the change in the value of $y$ for a 1 unit change in the value of $x$ (the slope of the blue line) - reading the graph above, the change in the value of $y$ reading between 20 and 15 on the $x$ axis looks to be around a change from 15 to 17.5 on the $y$ - about 0.5 per 1 unit value of $x$.
+
+$\epsilon_i$ is a random error term (positive or negative) that should sum to 0 - essentially, if you add all of the vertical differences between the blue line and all of the residuals, it should sum to 0.
+
+Any value of $y$ along the blue line can be modeled using the corresponding value of $x$ and these parameter values. Examining the graph above we would expect the percent smoking in an area where 26% of the population to not have any qualifications, to equal around 17%, but we can confirm this by plugging the $\beta$ parameter values and the value of $x$ into equation (1):
+
+```{r, message=FALSE, cache=FALSE}
+4 + (0.5*26) + 0
+```
+
+## Regression
+
+In the graph above, I used a method called 'lm' in the `stat_smooth()` function in `ggplot2` to draw the regression line. 'lm' stands for 'linear model' and is a standard function in R for running linear regression models. Use the help system to find out more about `lm` - `?lm`
+
+Below is the code that could be used to draw the blue line in our scatter plot. Note, the tilde `~` symbol means "is modeled by".
+
+```{r, message=FALSE, cache=FALSE}
+#now model
+model1 <- census_authorities_data_norm %>%
+  lm(percent_regular_smoker ~
+       percent_no_qualification,
+     data=.)
+```
+
+Let's have a closer look at our model...
+
+```{r, message=FALSE, cache=FALSE}
+#show the summary of those outputs
+summary(model1)
+```
+
+### Interpretation
+
+In running a regression model, we are effectively trying to test (disprove) our null hypothesis. If our null hypothesis was true, then we would expect our coefficients to = 0.
+
+In the output summary of the model above, there are a number of features you should pay attention to:
+
+**Coefficient Estimates** - these are the $\beta_0$ (intercept) and $\beta_1$ (slope) parameter estimates from Equation 1. You will notice that at $\beta_0 = 1.2$ and $\beta_1 = 0.64$ they are pretty close (not awful!) to the estimates of 4 and 0.5 that we read from the graph earlier, but more precise.
+
+**Coefficient Standard Errors** - these represent the average amount the coefficient varies from the average value of the dependent variable (its standard deviation). So, for a 1% increase in percent with no qualifications, while the model says we might expect percent of smokers to rise by 0.6%, this might vary, on average, by about 0.08%. As a rule of thumb, we are looking for a lower value in the standard error relative to the size of the coefficient.
+
+**Note that is the coefficient represents a one unit change, here it is %, as the variable is % unauthorized absence in school** So one unit is a 1% change...
+
+**Coefficient t-value** - this is the value of the coefficient divided by the standard error and so can be thought of as a kind of standardised coefficient value. The larger (either positive or negative) the value the greater the relative effect that particular independent variable is having on the dependent variable (this is perhaps more useful when we have several independent variables in the model) .
+
+**Coefficient p-value - Pr(\>\|t\|)** - the p-value is a measure of significance. There is lots of debate about p-values which I won't go into here, but essentially it refers to the probability of getting a coefficient as large as the one observed in a set of random data. p-values can be thought of as percentages, so if we have a p-value of 0.5, then there is a 5% chance that our coefficient could have occurred in some random data, or put another way, a 95% chance that out coefficient could have only occurred in our data.
+
+As a rule of thumb, the smaller the p-value, the more significant that variable is in the story and the smaller the chance that the relationship being observed is just random. Generally, statisticians use 5% or 0.05 as the acceptable cut-off for statistical significance - anything greater than that we should be a little sceptical about.
+
+In `r` the codes `***, **, **, .` are used to indicate significance. We generally want at least a single `*` next to our coefficient for it to be worth considering.
+
+**R-Squared** - This can be thought of as an indication of how good your model is - a measure of 'goodness-of-fit' (of which there are a number of others). $r^2$ is quite an intuitive measure of fit as it ranges between 0 and 1 and can be thought of as the % of variation in the dependent variable (in our case percentage of smokers) explained by variation in the independent variable(s). In our example, an $r^2$ value of 0.47 indicates that around 47% of the variation in percentage of smokers can be explained by variation in percentage with no qualifications. In other words, this is quite a good model. The $r^2$ value will increase as more independent explanatory variables are added into the model, so where this might be an issue, the adjusted r-squared value can be used to account for this affect.
+
+### Assumptions underpinning linear regression
+
+#### Assumption 1 - there is a linear relationship between the dependent and independent variables
+
+The best way to test for this assumption is to plot a scatter plot similar to the one created earlier. It may not always be practical to create a series of scatter plots, so one quick way to check that a linear relationship is probable is to look at the frequency distributions of the variables. If they are normally distributed, then there is a good chance that if the two variables are in some way correlated, this will be a linear relationship.
+
+For example, look at the frequency distributions of our two variables earlier:
+
+```{r}
+
+
+#let's check the distribution of these variables first
+
+ggplot(census_authorities_data_norm,
+       aes(x=percent_regular_smoker)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 binwidth = 1) + 
+  geom_density(colour="red", 
+               size=1, 
+               adjust=1)
+
+```
+
+Here, adding `after_stat(density)` means that the histogram is a density plot, this plots the chance that any value in the data is equal to that value.
+
+```{r, message=FALSE, cache=FALSE}
+ggplot(census_authorities_data_norm,
+       aes(x=percent_home_owner)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 binwidth = 1) + 
+  geom_density(colour="red",
+               size=1, 
+               adjust=1)
+```
+
+It is not a requirement of regression to have normally distributed variables, however if they aren't the residuals may well be normally distributed, but could vary (meaning we have hetroscedasticity) which we discuss later on.
+
+One way that we might be able to achieve a linear relationship between our two variables is to transform the non-normally distributed variable so that it is more normally distributed. For more information on this see [transforming variables](https://andrewmaclachlan.github.io/CASA0005repo/explaining-spatial-patterns.html#transforming-variables).
+
+**However** you will be changing the relationship of your data - it won’t be linear anymore! This could improve your model but is at the expense of interpretation. Aside from log transformation which has the rules in the link above.
+
+Typically if you do a power transformation you can keep the direction of the relationship (positive or negative) and the t-value will give an idea of the importance of the variable in the model - that’s about it!
+
+#### Assumption 2 - the residuals in your model should be normally distributed
+
+This assumption is easy to check. When we ran our model1 earlier, one of the outputs stored in our model 1 object is the residual value for each case (authority) in your dataset. We can access these values using `augment()` from `broom` which will add model output to the original data...
+
+We can plot these as a histogram and see if there is a normal distribution:
+
+```{r, message=FALSE, cache=FALSE}
+
+library(broom)
+
+#save the residuals into your dataframe
+model_data <- model1 %>%
+  augment(., census_authorities_data_norm)
+
+#plot residuals
+model_data%>%
+dplyr::select(.resid)%>%
+  pull()%>%
+  qplot()+ 
+  geom_histogram() 
+  
+```
+
+Examining the histogram above, i am happy this is rather normal although there is evidently an outlier in our data somewhere.
+
+#### Assumption 3 - no multicolinearity in the independent variables
+
+Now, the regression model we have be experimenting with so far is a simple bivariate (two variable) model. One of the nice things about regression modelling is while we can only easily visualise linear relationships in a two (or maximum 3) dimension scatter plot, mathematically, we can have as many dimensions / variables as we like.
+
+As such, we could extend model 1 into a multiple regression model by adding some more explanatory variables that we think could affect the percentage of people smoking...
+
+```{r, message=FALSE, cache=FALSE}
+
+model2 <- lm(percent_regular_smoker ~
+               percent_no_qualification + 
+               percent_home_owner +
+               census_2018_total_personal_income_median_curp_15years_and_over,
+             data = census_authorities_data_norm)
+
+summary(model2)
+```
+
+Examining the output above, it is clear that including these variables into our model improves the fit from an $r^2$ of around 47% to an $r^2$ of 65%. However, income is not significant so we should consider removing it..
+
+```{r}
+model2 <- lm(percent_regular_smoker ~
+               percent_no_qualification + 
+               percent_home_owner ,
+             data = census_authorities_data_norm)
+
+summary(model2)
+```
+
+Here we see the $r^2$ is almost the same. But do our two explanatory variables satisfy the no-multicoliniarity assumption? If not and the variables are highly correlated, then we are effectively double counting the influence of these variables and overstating their explanatory power
+
+```{r echo=FALSE, out.width = "450pt", fig.align='center', cache=FALSE, message=FALSE, fig.cap="Word anatomy of multicollinearity. Source: [What the Heck is Multicollinearity?, Andrew Ozbun](https://medium.com/geekculture/what-the-heck-is-multicollinearity-c5582ddbb2f7)"}
+knitr::include_graphics('prac4_images/multicollinearity_explain.png')
+```
+
+To check this, we can compute the product moment correlation coefficient between the variables, using the `corrr()` package, that's part of `tidymodels`. In an ideal world, we would be looking for something less than a 0.8 correlation
+
+```{r, message=FALSE, cache=FALSE}
+library(corrr)
+
+correlation <- census_authorities_data_norm %>%
+  dplyr::select(percent_no_qualification, 
+               percent_home_owner)%>%
+    correlate()
+
+#visualise the correlation matrix
+rplot(correlation)
+
+correlation
+```
+
+Another way that we can check for Multicolinearity is to examine the VIF for the model. If we have VIF values for any variable exceeding 10, then we may need to worry and perhaps remove that variable from the analysis:
+
+```{r, message=FALSE, cache=FALSE}
+library(car)
+vif(model2)
+```
+
+#### Assumption 4 - homoscedasticity
+
+Homoscedasticity means that the errors/residuals in the model exhibit constant / homogeneous variance, if they don't, then we would say that there is hetroscedasticity present. Why does this matter? Andy Field does a much better job of explaining this in [discovering statistics](https://www.discoveringstatistics.com/tag/homoscedasticity/) --- but essentially, if your errors do not have constant variance, then your parameter estimates could be wrong, as could the estimates of their significance.
+
+The best way to check for homo/hetroscedasticity is to plot the residuals in the model against the predicted values. We are looking for a cloud of points with no apparent patterning to them.
+
+```{r, message=FALSE, cache=FALSE}
+#print some model diagnositcs. 
+par(mfrow=c(2,2))    #plot to 2 by 2 array
+plot(model2)
+```
+
+In the series of plots above, the first plot (residuals vs fitted), we would hope to find a random cloud of points with a straight horizontal red line. Looking at the plot, the curved red line would suggest some hetroscedasticity, but the cloud looks quite random. Similarly we are looking for a random cloud of points with no apparent patterning or shape in the third plot of standardised residuals vs fitted values. Here, the cloud of points also looks fairly random, with perhaps some shaping indicated by the red line.
+
+[Section 5.7.6 in Tidyverse Skills for Data Science explains each of these plots in more detail](https://jhudatascience.org/tidyversecourse/model.html#model-diagnostics)
+
+In the plots here we are looking for:
+
+-   Residuals vs Fitted: a flat and horizontal line. This is looking at the linear relationship assumption between our variables
+
+-   Normal Q-Q: all points falling on the line. This checks if the residuals (observed minus predicted) are normally distributed
+
+-   Scale vs Location: flat and horizontal line, with randomly spaced points. This is **the homoscedasticity** (errors/residuals in the model exhibit constant / homogeneous variance). Are the residuals (also called errors) spread equally along all of the data.
+
+-   Residuals vs Leverage - Identifies outliers (or influential observations), the three largest outliers are identified with values in the plot.
+
+The University of Viginia Library provides [examples of good and bad models in relation to these plots](https://data.library.virginia.edu/diagnostic-plots/#:~:text=Scale%2DLocation,equally%20(randomly)%20spread%20points.).
+
+There is an easier way to produce this plot using `check_model()` from the `performance` package, that even includes what you are looking for...note that the Posterior predictive check is the comparison between the fitted model and the observed data.
+
+The default argument is `check=all` but we can specify what to check for...see the [arguments section in the documentation](https://rdrr.io/cran/performance/man/check_model.html)...e.g. `check = c("vif", "qq")`
+
+```{r message=FALSE, cache=FALSE}
+library(performance)
+
+check_model(model2, check="all")
+```
+
+#### Assumption 5 - independence of errors
+
+This assumption simply states that the residual values (errors) in your model must not be correlated in any way. If they are, then they exhibit *autocorrelation* which suggests that something might be going on in the background that we have not sufficiently accounted for in our model.
+
+##### Standard autocorrelation
+
+If you are running a regression model on data that do not have explicit space or time dimensions, then the standard test for autocorrelation would be the Durbin-Watson test.
+
+This tests whether residuals are correlated and produces a summary statistic that ranges between 0 and 4, with 2 signifying no autocorrelation. A value greater than 2 suggesting negative autocorrelation and and value of less than 2 indicating positive autocorrelation.
+
+In his [excellent text book](https://www.discoveringstatistics.com/books/discovering-statistics-using-r/), Andy Field suggests that you should be concerned with Durbin-Watson test statistics \<1 or \>3. So let's see:
+
+```{r, message=FALSE, cache=FALSE}
+#run durbin-watson test
+dw <- durbinWatsonTest(model2)
+tidy(dw)
+```
+
+As you can see, the DW statistics for our model is 1.41, so some indication of autocorrelation, but perhaps nothing to worry about.
+
+##### Spatial autocorrelation
+
+**HOWEVER**
+
+We are using spatially referenced data and as such we should check for *spatial*-autocorrelation.
+
+The first test we should carry out is to map the residuals to see if there are any apparent obvious patterns:
+
+```{r, message=FALSE, cache=FALSE}
+
+#and for future use, write the residuals out
+model2_residuals <- model2 %>%
+  augment(., census_authorities_data_norm)
+
+
+ta_model_data<- ta%>%
+  clean_names(.)%>%
+  left_join(., model2_residuals,
+            by=c("ta2018_v1"="area_code"))
+
+```
+
+```{r}
+library(tmap)
+
+#now plot the residuals
+tmap_mode("plot")
+
+tm_shape(ta_model_data) +
+  tm_polygons(".resid",
+              palette = "RdYlBu")
+
+
+```
+
+Now, we can immediately see some issues with this...
+
+1.  I have left the data "outside territorial authority" in the data and it has a large negative residual
+2.  Chatham Islands has been included and is also a large positive residual.
+
+For the purposes of this practical let's remove them and re-run the model...
+
+**Note** i have added in median income and it is now significant!
+
+```{r}
+census_authorities_data_norm_filter <- census_authorities_data_norm %>%
+  # != means not equal to
+  filter(area_code != "999" & area_code != "067")
+
+model3 <- lm(percent_regular_smoker ~
+               percent_no_qualification + 
+               percent_home_owner +
+               census_2018_total_personal_income_median_curp_15years_and_over,
+             data = census_authorities_data_norm_filter)
+
+summary(model3)
+```
+
+We see that the $r^2$ has jumped to 76%...now Durbin Watson test and map again.
+
+```{r warniing=FALSE, message=FALSE}
+
+dw <- durbinWatsonTest(model3)
+tidy(dw)
+
+#and for future use, write the residuals out
+model3_residuals <- model3 %>%
+  augment(., census_authorities_data_norm_filter)
+
+
+ta_model3_data<- ta%>%
+  clean_names(.)%>%
+  left_join(., model3_residuals,
+            by=c("ta2018_v1"="area_code"))
+
+tm_shape(ta_model3_data) +
+  tm_polygons(".resid",
+              palette = "RdYlBu")
+
+
+```
+
+This suggests that there could well be some spatial autocorrelation biasing our model, but can we test for spatial autocorrelation more systematically?
+
+Yes - and some of you will remember this from the practical two weeks ago. We can calculate a number of different statistics to check for spatial autocorrelation - the most common of these being Moran’s I.
+
+```{r warning=FALSE, message=FALSE}
+#calculate the centroids 
+
+ta_model3_data <- ta_model3_data %>%
+  filter(ta2018_v1 != "999" & ta2018_v1 != "067")
+
+coordsW <- ta_model3_data%>%
+  st_centroid()%>%
+  st_geometry()
+
+plot(coordsW)
+```
+
+```{r warning=FALSE, message=FALSE}
+library(spdep)
+
+#Now we need to generate a spatial weights matrix 
+#We'll start with a simple binary matrix of queen's case neighbours
+
+ta_nb <- ta_model3_data %>%
+  poly2nb(., queen=T)
+
+#or nearest neighbours
+ta_knn <-coordsW %>%
+  knearneigh(., k=4)
+
+ta_knn_nb <- ta_knn %>%
+  knn2nb()
+
+#plot them
+plot(ta_nb, st_geometry(coordsW), col="red")
+```
+
+```{r}
+#create a spatial weights matrix object from these weights
+
+ta_queens_weight <- ta_nb %>%
+  nb2listw(., style="W")
+
+ta_knn_4_weight <- ta_knn_nb %>%
+  nb2listw(., style="W")
+```
+
+The `style` argument means the style of the output --- `B` is binary encoding listing them as neighbours or not, `W` row standardised that we saw yesterday.
+
+Now run a Moran's I test on the residuals, first using queens neighbours
+
+```{r, message=FALSE, cache=FALSE}
+
+queen <- ta_model3_data %>%
+  st_drop_geometry()%>%
+  dplyr::select(.resid)%>%
+  pull()%>%
+  moran.test(., ta_queens_weight)%>%
+  tidy()
+
+```
+
+Then nearest k-nearest neighbours
+
+```{r, message=FALSE, cache=FALSE}
+nearest_neighbour <- ta_model3_data %>%
+  st_drop_geometry()%>%
+  dplyr::select(.resid)%>%
+  pull()%>%
+  moran.test(., ta_knn_4_weight)%>%
+  tidy()
+
+queen
+nearest_neighbour
+```
+
+Observing the Moran's I statistic for both Queen's case neighbours and k-nearest neighbours of 4, we can see that the Moran's I statistic is somewhere between 0.34 and 0.33. Remembering that Moran's I ranges from between -1 and +1 (0 indicating no spatial autocorrelation) we can conclude that there is some weak to moderate spatial autocorrelation in our residuals.
+
+This means that despite passing most of the assumptions of linear regression, we could have a situation here where the presence of some spatial autocorrelation could be leading to biased estimates of our parameters and significance values.
+
+## Spatial regression models
+
+### The spatial lag (lagged dependent variable) model
+
+Rrunning a Moran's I test on the residuals from the model suggested that there might be some spatial autocorreation occurring suggesting that places where the model over-predicted the percent of people smoking (those shown in blue in the map above with negative residuals) and under-predicted (those shown in red/orange) occasionally were near to each other.
+
+Ward and Gleditsch (2008) describe this situation (where the value of our $y$ dependent variable - percent people who smoke - may be influenced by neighbouring values) and suggest the way to deal with it is to incorporate a *spatially-lagged* version of this variable amongst the independent variables on the right-hand side of the equation. In this case, Equation 1 would be updated to look like this:
+
+$$y_i = \beta_0 + \beta_1x_i + \rho w_i.y_i + \epsilon_i$$
+
+In this equation, $w$ is the spatial weights matrix you generated and $w_i$ is vector of all neighbouring areas (in our case, Wards) for any Ward $y_i$. If using binary this will be a sum (e.g. the value of $y$ plotted against the sum of $y$ of the neighbouring wards). This may be explained as a weighted sum as the non-neighbours will be removed, the weight being the neighbours If this is row standardised it will be a weighted average of the neighbouring $y$ values. Typically we use a **row standardised** matrix.
+
+In this model, a positive value for the $\rho w_i.y_i$ parameter would indicate that the average value for the percent smoking is expected to be higher if, on average, neighbouring authorities also have a higher percentage of people who smoke.
+
+-   $\rho$ denotes (represents) the spatial lag
+
+For more details on running a spatially lagged regression model and interpreting the outputs, see the chapter on spatially lagged models by Ward and Gleditsch (2008) available online here: https://methods.sagepub.com/book/spatial-regression-models/n2.xml
+
+#### Queen's case lag
+
+Now run a spatially-lagged regression model with a queen's case weights matrix
+
+```{r, message=FALSE, cache=FALSE}
+library(spatialreg)
+
+slag_dv_model2_queen <- lagsarlm(percent_regular_smoker ~
+               percent_no_qualification + 
+               percent_home_owner +
+               census_2018_total_personal_income_median_curp_15years_and_over,
+               data = ta_model3_data, 
+               nb2listw(ta_nb, style="C"), 
+               method = "eigen")
+
+#what do the outputs show?
+tidy(slag_dv_model2_queen)
+
+#glance() gives model stats but this need something produced from a linear model
+#here we have used lagsarlm()
+glance(slag_dv_model2_queen)
+
+hold<-summary(slag_dv_model2_queen)
+
+sum(hold$residuals)
+```
+
+Running the spatially-lagged model with a Queen's case spatial weights matrix reveals that in this example, there is an insignificant and small effect associated with the spatially lagged dependent variable. However, a different conception of neighbours we might get a different outcome....
+
+Here:
+
+-   Rho is our spatial lag (0.0232) that measures the variable in the surrounding spatial areas as defined by the spatial weight matrix. We use this as an extra explanatory variable to account for clustering (identified by Moran's I). If significant it means that the percent of smokers in a unit vary based on the percent of smokers in the neighboring units. If it is positive it means as the percent of smokers increase in the surrounding units so does our central value
+
+-   Log likelihood shows how well the data fits the model (like the AIC, which we cover later), the higher the value the better the models fits the data.
+
+-   Likelihood ratio (LR) test shows if the addition of the lag is an improvement (from linear regression) and if that's significant. This code would give the same output...
+
+```{r, eval=FALSE}
+library(lmtest)
+lrtest(slag_dv_model2_queen, model3)
+```
+
+-   Lagrange Multiplier (LM) is a test for the absence of spatial autocorrelation in the lag model residuals. If significant then you can reject the Null (no spatial autocorrelation) and accept the alternative (is spatial autocorrelcation)
+
+-   Wald test (often not used in interpretation of lag models), it tests if the new parameters (the lag) should be included it in the model...if significant then the new variable improves the model fit and needs to be included. This is similar to the LR test and i've not seen a situation where one is significant and the other not. Probably why it's not used!
+
+In this case we have spatial autocorrelation in the residuals of the model, but the model is not an improvement on OLS --- this can also be confirmed with the AIC score (we cover that later) but the lower it is the better. Here it is 293, in OLS (model 3) it was 292. The Log likelihood for model 3 (OLS) was -141, here it is -140.
+
+##### Lag impacts
+
+**Warning** according to Solymosi and Medina (2022) you must not not compare the coefficients of this to regular OLS...**Why ?**
+
+Well in OLS recall we can use the coefficients to say...a 1 unit change in the independent variable means a drop or rise in the dependent (for a 1% increase in percent with no qualifications the percent of smokers rises by 0.64 percent). **BUT** here the model is not consistent as the observations will change based on the weight matrix neighbours selected which might vary (almost certainly in a distance based matrix). This means we have a direct effect (standard OLS) and then an indirect effect in the model (impact of the spatial lag).
+
+We can compute these direct and indirect effects using code from Solymosi and Medina (2022) and the [spatialreg](https://r-spatial.github.io/spatialreg/reference/impacts.html) package. Here the `impacts()` function calculates the impact of the spatial lag. We can fit this to our entire spatial weights....
+
+```{r, message=FALSE, cache=FALSE}
+library(spdep)
+
+# weight list is just the code from the lagsarlm
+weight_list<-nb2listw(ta_knn_nb, style="C")
+
+imp <- impacts(slag_dv_model2_queen, listw=weight_list)
+
+imp
+```
+
+Now it is appropriate to compare these coefficients to the OLS outputs...**however** if you have a very large matrix this might not work, instead a sparse matrix that uses approximation methods (see Solymosi and Medina (2022) and within that resource, Lesage and Pace 2009). This is beyond the scope of the content here, but essentially this makes the method faster on larger data...but only row standardised is permitted here...
+
+### The spatial error model
+
+Another way of coneptualising spatial dependence in regression models is not through values of the dependent variable in some areas affecting those in neighbouring areas (as they do in the spatial lag model), but in treating the spatial autocorrelation in the residuals as something that we need to deal with, perhaps reflecting some spatial autocorrelation amongst unobserved independent variables or some other mis-specification of the model.
+
+Ward and Gleditsch (2008) characterise this model as seeing spatial autocorrelation as a nuisance rather than being particularly informative, however it can still be handled within the model, albeit slightly differently.
+
+The spatial error model can be written:
+
+$$y_i = \beta_0 + \beta_1x_i + \lambda w_i\xi_i + \epsilon_i$$
+
+where
+
+-   $\xi_i$ is the spatial component of the error terms...in other words the residuals of the values in surrounding spatial units based on the weight matrix. The same rules apply as the lag (e.g. binary = sum, row standardisied = weighted average).
+
+-   $\lambda$ is a measure of correlation between neighbouring residuals.. "it indicates the extent to which the spatial component of the errors $\xi_i$ are correlated with one another for nearby observations" as per the weight matrix, Ward and Gleditsch (2008). **If there is no correlation between the then this defaults to normal OLS regression**
+
+For more detail on the spatial error model, see Ward and Gleditsch (2008) - https://methods.sagepub.com/Book/spatial-regression-models/n3.xml
+
+We can run a spatial error model on the same data below:
+
+```{r, message=FALSE, cache=FALSE}
+sem_1 <- errorsarlm(percent_regular_smoker ~
+               percent_no_qualification + 
+               percent_home_owner +
+               census_2018_total_personal_income_median_curp_15years_and_over,
+               data = ta_model3_data, 
+               nb2listw(ta_nb, style="C"), 
+               method = "eigen")
+
+
+tidy(sem_1)
+```
+
+Comparing the results of the spatial error model with the spatially lagged model and the original OLS model, the suggestion here is that the spatially correlated errors in residuals lead to over/under estimations of the coefficients.
+
+Note, here we can compare to OLS as there is no spatial lag.
+
+The $\lambda$ parameter in the spatial error model is larger than the standard error and is significant, but the $\rho$ parameter is not larger than the standard error and is not significant.
+
+So we can conclude that spatial dependence *might* be borne in mind when interpreting the results of this regression model. This suggests to us that the smoking is not influenced by neighbouring polygons (or smokers) but the errors between the neighours are related and we may have some mis-specification of the model - e.g. a missing variable.
+
+### Key advice
+
+The **lag** model accounts for situations where the value of the dependent variable in one area might be associated with or influenced by the values of that variable in neighbouring zones (however we choose to define neighbouring in our spatial weights matrix). With our example, smoking in one neighbourhood might be related to smoking in another. You may be able to think of other examples where similar associations may occur. You might run a lag model if you identify spatial autocorrelation in the dependent variable (closer spatial units have similar values) with Moran’s I.
+
+The **error** model deals with spatial autocorrelation (closer spatial units have similar values) of the residuals (vertical distance between your point and line of model – errors – over-predictions or under-predictions) again, potentially revealed though a Moran’s I analysis. The error model is not assuming that neighbouring independent variables are influencing the dependent variable but rather the assumption is of an **issue with the specification of the model or the data used** (e.g. clustered errors are due to some un-observed clustered variables not included in the model). For example, smoking prevelance may be similar in bordering neighbourhoods because residents in these neighbouring places come from similar socio-economic backgrounds and this was not included as an independent variable in the original model. There is no spatial process (no cross authority interaction) just a cluster of an un-accounted for but influential variable.
+
+## GWR
+
+Rather than spatial autocorrelation causing problems with our model, it might be that a “global” regression model does not capture the full story. In some parts of our study area, the relationships between the dependent and independent variable may not exhibit the same slope coefficient.
+
+If this occurs, then we have ‘non-stationarity’ - this is when the global model does not represent the relationships between variables that might vary locally.
+
+### Bandwidth
+
+This part of the practical will only skirt the edges of GWR, for much more detail you should visit the GWR website which is produced and maintained by Prof Chris Brunsdon and Dr Martin Charlton who originally developed the technique - http://gwr.nuim.ie/
+
+I should also acknowledge [the guide on GWR produced by the University of Bristol](http://www.bris.ac.uk/cmpo/events/2009/segregation/gwr.pdf), which was a great help when producing this exercise.
+
+```{r message=FALSE, warning=FALSE, cache=FALSE}
+library(spgwr)
+
+coordsW2 <- st_coordinates(coordsW)
+
+ta_model3_data_gwr <- cbind(ta_model3_data,coordsW2)
+
+gwrbandwidth <- gwr.sel(percent_regular_smoker ~
+               percent_no_qualification + 
+               percent_home_owner +
+               census_2018_total_personal_income_median_curp_15years_and_over,
+               data = ta_model3_data_gwr,  
+                        coords=cbind(ta_model3_data_gwr$X, ta_model3_data_gwr$Y),
+                  adapt=T)
+gwrbandwidth
+```
+
+Setting `adapt=T` here means to automatically find the proportion of observations for the weighting using k nearest neighbours (an adaptive bandwidth), False would mean a global bandwidth and that would be in meters (as our data is projected).
+
+Occasionally data can come with longitude and latitude as columns (e.g. WGS84) and we can use this straight in the function to save making centroids, calculating the coordinates and then joining - the argument for this is `longlat=TRUE` and then the columns selected in the `coords` argument e.g. `coords=cbind(long, lat)`. The distance result will then be in KM.
+
+The optimal bandwidth is about 0.106 meaning 10.6% of all the total spatial units should be used for the local regression based on k-nearest neighbours. Which is about 7 of the 66 territorial authorities.
+
+This approach uses cross validation to search for the optimal bandwidth, it compares different bandwidths to minimise model residuals --- this is why we specify the regression model within `gwr.sel()`. It does this with a Gaussian weighting scheme (which is the default) - meaning that near points have greater influence in the regression and the influence decreases with distance - there are variations of this, but Gaussian is a fine to use in most applications. To change this we would set the argument `gweight = gwr.Gauss` in the `gwr.sel()` function --- `gwr.bisquare()` is the other option. We don't go into cross validation in this module.
+
+**However** we could set either the number of neighbours considered or the distance within which to considered points ourselves, manually, in the `gwr()` function below.
+
+To set the number of other neighbours considered simply change the `adapt` argument to the value you want - it must be the number of neighbours divided by the total (e.g. to consider 20 neighbours it would be 20/66 and you'd use the value of 0.30)
+
+The set the bandwidth, **remove** the `adapt` argument and replace it with `bandwidth` and set it, in this case, in meters.
+
+To conclude, we can:
+
+-   set the bandwidth in `gwr.sel()` automatically using:
+    -   the number of neighbors
+    -   a distance threshold
+-   Or, we can set it manually in `gwr()` using:
+    -   a number of neighbors
+    -   a distance threshold
+
+::: callout-tip
+**BUT** a problem with setting a fixed bandwidth is we assume that all variables have the same relationship across **the same space (using the same number of neighbours or distance)**...(such as rate_of_job_seekers_allowance_jsa_claimants_2015 and percent_with_level_4_qualifications_and_above_2011). We can let these bandwidths vary as some relationships will operate on different spatial scales...this is called **Multiscale GWR** and Lex Comber recently said that all GWR should be Multisacle (oops!). We have already covered a lot here so i won't go into it. If you are interested Lex has a [good tutorial on Multiscale GWR](https://rpubs.com/lexcomber/INIA_Session7)
+:::
+
+### Model
+
+```{r}
+#run the gwr model
+gwr_model = gwr(percent_regular_smoker ~
+               percent_no_qualification + 
+               percent_home_owner +
+               census_2018_total_personal_income_median_curp_15years_and_over,
+               data = ta_model3_data_gwr,  
+                        coords=cbind(ta_model3_data_gwr$X, ta_model3_data_gwr$Y), 
+                adapt=gwrbandwidth,
+                #matrix output
+                hatmatrix=TRUE,
+                #standard error
+                se.fit=TRUE)
+
+#print the results of the model
+gwr_model
+```
+
+The output from the GWR model reveals how the coefficients vary across the 66 territorial authorities New Zealand. You will see how the **global** coefficients are exactly the same as the coefficients in the earlier `lm` model. In this particular model, if we take percent with no qualification, we can see that the coefficients range from a minimum value of 0.41 (1 unit change in percent with no qualification resulting in a rise in percent smoking of 0.41) to 0.69 (1 unit change in percent with no qualification resulting in a rise in percent smoking of 0.69).
+
+You will notice that the R-Squared value (Quasi global R-squared) has improved - this is not uncommon for GWR models, but it doesn't necessarily mean they are definitely better than global models. The small number of cases (spatial areas) under the kernel means that GW models have been criticised for lacking statistical robustness.
+
+The best way to compare models is with the **AIC (Akaike Information Criterion) or for smaller sample sizes the sample-size adjusted AICc**, especially when you number of points is [less than 40!](https://towardsdatascience.com/introduction-to-aic-akaike-information-criterion-9c9ba1c96ced) Which it will be in GWR. The models must also be using the same data and be over the same study area!
+
+AIC is calculated using the:
+
+-   number of independent variables
+-   maximum likelihood estimate of the model (how well the model reproduces the data).
+
+The lower the value the better the better the model fit is, see [scribbr](https://www.scribbr.com/statistics/akaike-information-criterion/)if you want to know more here..although this is enough to get you through most situations.
+
+Coefficient ranges can also be seen for the other variables and they suggest some interesting spatial patterning.
+
+### Map coefficients
+
+To explore this we can plot the GWR coefficients for different variables. Firstly we can attach the coefficients to our original dataframe - this can be achieved simply as the coefficients for each territoiral authority appear in the same order in our spatial points dataframe as they do in the original dataframe.
+
+```{r}
+results <- as.data.frame(gwr_model$SDF)
+names(results)
+```
+
+```{r}
+#attach coefficients to original
+
+
+ta_model3_data_gwr_results <- ta_model3_data_gwr %>%
+  mutate(coefqualification = results$percent_no_qualification,
+         coefhomeowner = results$percent_home_owner,
+         coefincome = results$census_2018_total_personal_income_median_curp_15years_and_over_se)
+```
+
+```{r}
+tm_shape(ta_model3_data_gwr_results) +
+  tm_polygons(col = "coefqualification", 
+              palette = "RdBu", 
+              alpha = 0.5)
+```
+
+Taking the first coefficient we see that this varies across the country. A possible trend to explore further might be the inclusion or distance to tobacco retailers - both Wellington and Auckland have some of the highest coefficients, meaning a 1 unit (percent) change in no qualification returns a higher rise in percent of people smoking.
+
+### Significance
+
+Of course, these results may not be statistically significant across the whole of New Zealand. Roughly speaking, if a coefficient estimate is more than 2 standard errors away from zero, then it is “statistically significant”.
+
+Remember from earlier the standard error is “the average amount the coefficient varies from the average value of the dependent variable (its standard deviation). So, for 1% increase in percent with no qualifications, while the model says we might expect GSCE scores to drop by 0.6%, this might vary, on average, by about 0.08%. As a rule of thumb, we are looking for a lower value in the standard error relative to the size of the coefficient.”
+
+To calculate standard errors, for each variable you can use a formula similar to this:
+
+```{r}
+#run the significance test
+# abs gets the absolute vale - negative values are converted into positive value
+sigTest = abs(gwr_model$SDF$percent_no_qualification)- 2* gwr_model$SDF$percent_no_qualification_se
+
+
+#store significance results
+ta_model3_data_gwr_results <- ta_model3_data_gwr_results %>%
+  mutate(gwrpercent_no_qualification_sig = sigTest)
+```
+
+```{r}
+tm_shape(ta_model3_data_gwr_results) +
+  tm_polygons(col = "gwrpercent_no_qualification_sig", 
+              palette = "RdYlBu")
+```
+
+If this is greater than zero (i.e. the estimate is more than two standard errors away from zero), it is very unlikely that the true value is zero, i.e. it is statistically significant (at nearly the 95% confidence level)
+
+This is a combination of two ideas:
+
+-   95% of data in a normal distribution is within two standard deviations of the mean
+-   Statistical significance in a regression is normally measured at the 95% level. If the p-value is less than 5% — 0.05 — then there's a 95% probability that a coefficient as large as you are observing didn't occur by chance
+
+Combining these two means if...
+
+-   the coefficient is large in relation to its standard error **and**
+-   the p-value tells you if that largeness is statistically acceptable - at the 95% level (less than 5% — 0.05)
+
+You can be confident that in your sample, nearly all of the time, that is a real and reliable coefficient value.
+
+## Including spatial features
+
+I mentioned at the start we could also try and include some spatial features within our model - for example the density of shops that sell tobacco? In a sense this is similar to what is termed a **spatially omitted covariate**... typically this means that the nearer something is the more influence it might have on our model.
+
+However, we could only really calculate distance to tobacco shops from the centroid of the territorial authority - which is a possible variable. But instead we could use density of shops per territorial authority!
+
+Here, i will use open street map to calculate a density. I have downloaded the data from [Geofabrik](https://download.geofabrik.de/australia-oceania/new-zealand.html)
+
+```{r}
+osm_pois <- st_read("prac4_data/new-zealand-latest-free.shp/gis_osm_pois_a_free_1.shp")
+
+osm_pois_filter <- osm_pois %>%
+  filter(fclass == "supermarket" | fclass =="convenience")%>%
+  st_transform(., 2135)
+```
+
+Now let's intersect with the territorial authority boundaries and calculate a density.
+
+**Note** that the districts object is in the correct CRS, however i beleive this is due to naming differences so we will transform it just incase.
+
+```{r}
+ta <- ta %>%
+   st_transform(., 2135)
+
+stores_joined <- ta %>%
+  mutate(n = lengths(st_intersects(., osm_pois_filter)))%>%
+  janitor::clean_names()%>%
+  #calculate area
+  mutate(area=st_area(.))%>%
+  #then density of the points per ward
+  mutate(density=n/area)
+```
+
+Now, we could use this in our model!
+
+On the 1st July 2024 New Zealand intends to reduce the number of tobacco retailers from 6,000 to just 599! With a maximum number per area according to the table set on [Ministry of Health website](https://www.health.govt.nz/publication/maximum-numbers-approved-smoked-tobacco-retail-premises-permitted-areas-new-zealand).

@@ -1,0 +1,59 @@
+# Software installation {-}
+
+This course primarily uses the R data science programming language. We briefly touch upon QGIS to give you a basic foundation in the range of spatial software available, please follow the instructions below before the first practical session to install the software on your local computer if you are planning to use it throughout the course. 
+
+## QGIS {-}
+
+QGIS is an open-source graphic user interface GIS with many community developed add on packages that (or plugins) that provide additional functionality to the software. In this module we will primarly use QGIS to check our spatial data.
+
+To get QGIS on your personal machine go to: https://qgis.org/en/site/forusers/download.html
+
+I install the OSGeo4W version. The nature of open-source means that several programs will rely on each other for features. OSGeo4W tracks all the shared requirements and does not install any duplicates. 
+
+When you click through the dialogue boxes you need to **search for QGIS in the OSGeo4W setup and click the refresh button** so it **changes from skip to install**....
+
+
+```{r echo=FALSE, out.width = "450", fig.align='center', cache=FALSE, fig.cap="Continuous and discrete data. Source: [GIS Stackexchange](https://gis.stackexchange.com/questions/230672/how-to-install-osgeo4w-libraries-in-older-version-of-qgis-2-16)"}
+knitr::include_graphics('general_images/QGIS_install2.png')
+```
+
+## R {-}
+
+R is both a programming language and software environment, originally designed for statistical computing and graphics. R’s great strength is that it is open-source, can be used on any computer operating system and free for anyone to use and contribute to. Because of this, it is rapidly becoming the statistical language of choice for many academics and has a huge user community with people constantly contributing new packages to carry out all manner of statistical, graphical and importantly for us, geographical tasks.
+
+### Basics {-}
+
+The advised method for using R is to download it to your personal machine, so you can use it in future without any issues.
+
+To use "R" we need to bits of software:
+
+- R itself: https://cran.rstudio.com/
+- Then also RStudio: https://www.rstudio.com/products/rstudio/download/#download
+
+R is the core software and RStudio gives a simpler interface for us to use it. If you used R (which you could) you'd be just typing code, with no other features. RStudio gives us other features to make this much easier, just like how you would never type a report in notepad (Windows) or notes (on Apple), you'd use the word processor to make it easier. Chester Ismay and Albert Y. Kim explain this with a car analogy: 
+
+```{r echo=FALSE, out.width = "500pt", fig.align='center', cache=FALSE, fig.cap="R vs RStudio. Source: [A ModernDive into R and the Tidyverse, Ismay and Kim, 2021](https://moderndive.com/1-getting-started.html)"}
+knitr::include_graphics('general_images/r_vs_rstudio_1.png') 
+```
+
+R and RStudio are software that require updating over time. It's easy to forget!
+
+### Packages {-}
+
+Base R (controlled or driven through RStudio) is very limited. As a result people develop packages to make data loading, wrangling, analysis and visulisation much easier than having to write all the code. All packages will have lots of functions that just look up code from the package to make what you are doing easier (we will go into this in more detail later).
+
+Packages develop over time and have different versions (like software). This can cause some issues with updates and code not working like it did once before. This book means i have to run all the code anyway, so every year it is checked and most packages are updated. 
+
+There are many errors and issues that can arise with package installation. You should read the following section now so you are aware of it, but you won't need it until you hit an issue.
+
+The most common package errors and issues are:
+
+* The package relies on another package which you might not have --- this is called a dependency. Think about building a house --- moving in and living in the house is dependent on the foundations, the walls, the windows. The solution is to install the package you are missing.
+
+* The package has a new version --- simply update it, in RStudio the package tab (which we will see in the module) has an update option.
+
+* Your version of R might not support the package. This is unlikely as I update this every year. But to solve it either use an older version of the package and/or update your version of R. 
+
+* There is an error with the package. If all else fails i remove the package and the re-install it. Again, in the package tab there is a small cross next to each package, clicking it let's you remove it. 
+
+If the problem persists then assuming the error is `package xxx is not available` consult the [relevant stack overflow question](https://stackoverflow.com/questions/25721884/how-should-i-deal-with-package-xxx-is-not-available-for-r-version-x-y-z-wa) 

@@ -1,0 +1,9 @@
+# Datasets
+
+Health data can be hard to find online. Here are some interesting datasets i have come across:
+
+-   [UK Small area mental health index / other mental health data](https://ocsi.uk/2020/10/12/neighbourhood-data-on-mental-health/)
+
+-   [UK Understanding society health and wellbeing](https://www.understandingsociety.ac.uk/documentation/access-data/)
+
+-   [UK Police data (e.g. for looking at violence and mental wellbeing)](https://data.police.uk/data/)

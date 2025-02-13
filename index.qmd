@@ -1,0 +1,19 @@
+Andy MacLachlan[^index-1]
+Laura Sheppard[^index-2]
+Adam Dennett[^index-3]
+Chiara Gericke[^index-4]
+
+
+[^index-1]: The Bartlett Centre for Advanced Spatial Analysis, https://www.andymac.uk/
+[^index-2]: https://cls.ucl.ac.uk/team/laura-sheppard/
+[^index-3]: The Bartlett Centre for Advanced Spatial Analysis, https://adamdennett.co.uk/
+[^index-4]: Centre for Behaviour Change, https://www.chiaragericke.co.uk/about-me
+
+```{r}
+```
+
+Last updated: `r Sys.Date()`
+
+## Welcome {.unnumbered}
+
+Hello, this website <a href="https://www.ucl.ac.uk/bartlett/casa/"><img src="general_images/casa_logo.jpg" alt="Spatial Analysis of public health course" width="120" align="right" style="margin: 0 1em 0 1em"/></a> holds the material used to support the Spatial Analysis of public health data, part of the MSc in Modelling for Global Health at the University of Oxford.

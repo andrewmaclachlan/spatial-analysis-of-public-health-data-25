@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.554">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Spatial analysis of public health data - 1&nbsp; Geographic information</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./02_point_patterns.html" rel="next">
+<link href="./software.html" rel="prev">
+<link href="./assets/favicon.ico" rel="icon">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <img src="./general_images/casa_logo.jpg" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Spatial analysis of public health data</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+    <a href="https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-24" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_geographic_data.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Geographic information</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Welcome</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./software.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Software installation</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_geographic_data.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Geographic information</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_point_patterns.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Point patterns and autocorrelation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_obesity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Obesity</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_spatial_models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Spatial models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_food_bank_accessibility.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Food bank accessibility</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-outcomes" id="toc-learning-outcomes" class="nav-link active" data-scroll-target="#learning-outcomes"><span class="header-section-number">1.1</span> Learning outcomes</a></li>
+  <li><a href="#the-basics-of-geographic-information" id="toc-the-basics-of-geographic-information" class="nav-link" data-scroll-target="#the-basics-of-geographic-information"><span class="header-section-number">1.2</span> The Basics of geographic information</a>
+  <ul class="collapse">
+  <li><a href="#data-types-in-statistics" id="toc-data-types-in-statistics" class="nav-link" data-scroll-target="#data-types-in-statistics"><span class="header-section-number">1.2.1</span> Data types in statistics</a></li>
+  <li><a href="#important-gis-data-formats" id="toc-important-gis-data-formats" class="nav-link" data-scroll-target="#important-gis-data-formats"><span class="header-section-number">1.2.2</span> Important GIS data formats</a></li>
+  </ul></li>
+  <li><a href="#general-data-flow" id="toc-general-data-flow" class="nav-link" data-scroll-target="#general-data-flow"><span class="header-section-number">1.3</span> General data flow</a></li>
+  <li><a href="#uk-spatial-geography" id="toc-uk-spatial-geography" class="nav-link" data-scroll-target="#uk-spatial-geography"><span class="header-section-number">1.4</span> UK spatial geography</a></li>
+  <li><a href="#r-spatial-data-intro" id="toc-r-spatial-data-intro" class="nav-link" data-scroll-target="#r-spatial-data-intro"><span class="header-section-number">1.5</span> R Spatial data intro</a>
+  <ul class="collapse">
+  <li><a href="#spatial-data-projections" id="toc-spatial-data-projections" class="nav-link" data-scroll-target="#spatial-data-projections"><span class="header-section-number">1.5.1</span> Spatial data projections</a></li>
+  <li><a href="#data-download" id="toc-data-download" class="nav-link" data-scroll-target="#data-download"><span class="header-section-number">1.5.2</span> Data download</a></li>
+  <li><a href="#wrangle" id="toc-wrangle" class="nav-link" data-scroll-target="#wrangle"><span class="header-section-number">1.5.3</span> Wrangle</a></li>
+  <li><a href="#long-vs-wide-data" id="toc-long-vs-wide-data" class="nav-link" data-scroll-target="#long-vs-wide-data"><span class="header-section-number">1.5.4</span> Long vs wide data</a></li>
+  <li><a href="#map" id="toc-map" class="nav-link" data-scroll-target="#map"><span class="header-section-number">1.5.5</span> Map</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-24/edit/main/01_geographic_data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-24/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Geographic information</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Reading</strong></p>
+<p>Each session there will be some reading to support the taught content. You are not constrained to this reading list and i encourage you to read widely!</p>
+<ul>
+<li><p><a href="https://www.sciencedirect.com/science/article/pii/B9780080449104000341">GIS and Cartography</a> by Goodchild (2009)</p></li>
+<li><p><a href="https://geocompr.robinlovelace.net/spatial-class.html">Chapter 2 “Geographic data in R”</a> from Geocomputation with R by Lovelace, Nowosad and Muenchow (2020).</p></li>
+<li><p><a href="https://link.springer.com/article/10.1007/s10109-020-00334-2#Sec3">Opening practice: supporting reproducibility and critical spatial data science</a> by Brunsdon and Comber (2020)</p></li>
+</ul>
+<p><strong>Watching</strong></p>
+<ul>
+<li><p><a href="https://www.youtube.com/watch?v=osAbJeTho5w">What is Spatial Data Science, CARTO</a></p></li>
+<li><p><a href="https://www.youtube.com/watch?v=8I_VpC6IuJs">Can you make an accurate map, SciShow</a></p></li>
+</ul>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Homework</strong></p>
+<p>The task is to join some non spatial data to some spatial data and make a map</p>
+<ul>
+<li><p>Go to the <a href="https://datafinder.stats.govt.nz/">New Zealand spatial data portal</a> and download the file Territorial Authority 2018 (generalised), <a href="https://www.localcouncils.govt.nz/lgip.nsf/wpg_url/About-Local-Government-Local-Government-In-New-Zealand-Councils-roles-and-functions#TerritorialAuthorities(District%20and%20City%20Councils)">these are city or district councils</a>. Make sure it’s the Territorial Authority 2018 data <strong>not</strong> SA1.</p></li>
+<li><p>Go to the <a href="https://www.stats.govt.nz/information-releases/statistical-area-1-dataset-for-2018-census-updated-march-2020">Stats NZ website</a> and download the Statistical area 1 dataset for 2018 for the whole of New Zealand. Download the excel file this week, <strong>not</strong> the <code>.csv</code>.</p></li>
+<li><p>Unzip the downloaded census file and open 2018-SA1-dataset-individual-part-2-total-NZ_updated_16-7-20, you will see a tab for Territorial authority. Join a 2018 health related (see point below) field to the spatial data and make a basic map. Hint, you may need to make a new <code>.csv</code> file from the data, we will use the raw data later in the week.</p></li>
+<li><p>Make a map of health related data (e.g.&nbsp;smoking, glasses, hearing aid)</p></li>
+</ul>
+</div>
+</div>
+<section id="learning-outcomes" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="learning-outcomes"><span class="header-section-number">1.1</span> Learning outcomes</h2>
+<p>By the end of this practical you should be able to:</p>
+<ol type="1">
+<li>Describe and explain GIS data formats and databases</li>
+<li>Source and pre-process spatial data</li>
+<li>Load and undertaken some basic manipulation of spatial data</li>
+<li>Create some maps</li>
+</ol>
+</section>
+<section id="the-basics-of-geographic-information" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="the-basics-of-geographic-information"><span class="header-section-number">1.2</span> The Basics of geographic information</h2>
+<p>Geographic data, geospatial data or geographic information is data that identifies the location of features on Earth. There are two main types of data which are used in GIS applications to represent the real world. <strong>Vectors</strong> that are composed of points, lines and polygons and <strong>rasters</strong> that are grids of cells with individual values…</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/rasvec.jpg" class="img-fluid figure-img" style="width:2.77778in"></p>
+<figcaption>Types of spatial data. Source: <a href="https://planet.uwc.ac.za/nisl/gis/web_page/page_15.htm">Spatial data models</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In the above example the features in the real world (e.g.&nbsp;lake, forest, marsh and grassland) have been represented by points, lines and polygons (vector) or discrete grid cells (raster) of a certain size (e.g.&nbsp;1 x 1m) specifying land cover type.</p>
+<section id="data-types-in-statistics" class="level3" data-number="1.2.1">
+<h3 data-number="1.2.1" class="anchored" data-anchor-id="data-types-in-statistics"><span class="header-section-number">1.2.1</span> Data types in statistics</h3>
+<p>Before we go any further let’s just quick go over the different types of data you might encounter</p>
+<p>Continuous data can be measured on some sort of scale and can have any value on it such as height and weight.</p>
+<p>Discrete data have finite values (meaning you can finish counting something). It is numeric and countable such as number of shoes or the number of computers within the classroom.</p>
+<p>Foot length would be continuous data but shoe size would be discrete data.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="allisonhorst_images/continuous_discrete.png" class="img-fluid figure-img" width="450"></p>
+<figcaption>Continuous and discrete data. Source: <a href="https://github.com/allisonhorst/stats-illustrations">Allison Horst data science and stats illustrations</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Nominal (also called categorical) data has labels without any quantitative value such as hair colour or type of animal. Think names or categories - there are no numbers here.</p>
+<p>Ordinal, similar to categorical but the data has an order or scale, for example if you have ever seen the chilli rating system on food labels or filled a happiness survey with a range between 1 and 10 — that’s ordinal. Here the order matters, but not the difference between them.</p>
+<p>Binary data is that that can have only two possible outcomes, yes and no or shark and not shark.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="allisonhorst_images/nominal_ordinal_binary.png" class="img-fluid figure-img" style="width:7.63889in"></p>
+<figcaption>Nominal, ordinal and binary data. Source: <a href="https://github.com/allisonhorst/stats-illustrations">Allison Horst data science and stats illustrations</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="important-gis-data-formats" class="level3" data-number="1.2.2">
+<h3 data-number="1.2.2" class="anchored" data-anchor-id="important-gis-data-formats"><span class="header-section-number">1.2.2</span> Important GIS data formats</h3>
+<p>There are a number of commonly used geographic data formats that store vector and raster data that you will come across during this course and it’s important to understand what they are, how they represent data and how you can use them.</p>
+<section id="shapefiles" class="level4" data-number="1.2.2.1">
+<h4 data-number="1.2.2.1" class="anchored" data-anchor-id="shapefiles"><span class="header-section-number">1.2.2.1</span> Shapefiles</h4>
+<p>Perhaps the most commonly used GIS data format is the shapefile. Shapefiles were developed by <a href="http://www.esri.com/">ESRI</a>, one of the first and now certainly the largest commercial GIS company in the world. Despite being developed by a commercial company, they are mostly an open format and can be used (read and written) by a host of GIS Software applications.</p>
+<p>A shapefile is actually a collection of files —- at least three of which are needed for the shapefile to be displayed by GIS software. They are:</p>
+<ol type="1">
+<li><code>.shp</code> - the file which contains the feature geometry</li>
+<li><code>.shx</code> - an index file which stores the position of the feature IDs in the <code>.shp</code> file</li>
+<li><code>.dbf</code> - the file that stores all of the attribute information associated with the coordinates – this might be the name of the shape or some other information associated with the feature</li>
+<li><code>.prj</code> - the file which contains all of the coordinate system information (the location of the shape on Earth’s surface). Data can be displayed without a projection, but the <code>.prj</code> file allows software to display the data correctly where data with different projections might be being used</li>
+</ol>
+<p>On Twitter and want to see the love for shapefiles….have a look at <a href="https://twitter.com/shapefiIe">the shapefile account</a></p>
+</section>
+<section id="geojson" class="level4" data-number="1.2.2.2">
+<h4 data-number="1.2.2.2" class="anchored" data-anchor-id="geojson"><span class="header-section-number">1.2.2.2</span> GeoJSON</h4>
+<p>GeoJSON <a href="http://geojson.org/">Geospatial Data Interchange format for JavaScript Object Notation</a> is becoming an increasingly popular spatial data format, particularly for web-based mapping as it is based on JavaScript Object Notation. Unlike a shapefile in a GeoJSON, the attributes, boundaries and projection information are all contained in the same file.</p>
+</section>
+<section id="raster-data" class="level4" data-number="1.2.2.3">
+<h4 data-number="1.2.2.3" class="anchored" data-anchor-id="raster-data"><span class="header-section-number">1.2.2.3</span> Raster data</h4>
+<p>Most raster data is now provided in GeoTIFF (<code>.tiff</code>) format, which stands for Geostarionary Earth Orbit Tagged Image File. The GeoTIFF data format was created by NASA and is a standard public domain format. All necesary information to establish the location of the data on Earth’s surface is embedded into the image. This includes: map projection, coordinate system, ellipsoid and datum type.</p>
+</section>
+<section id="geodatabase" class="level4" data-number="1.2.2.4">
+<h4 data-number="1.2.2.4" class="anchored" data-anchor-id="geodatabase"><span class="header-section-number">1.2.2.4</span> Geodatabase</h4>
+<p>A geodatabase is a collection of geographic data held within a database. Geodatabases were developed by ESRI to overcome some of the limitations of shapefiles. They come in two main types: Personal (up to 1 TB) and File (limited to 250 - 500 MB), with Personal Geodatabases storing everything in a Microsoft Access database (<code>.mdb</code>) file and File Geodatabases offering more flexibility, storing everything as a series of folders in a file system. In the example below we can see that the FCC_Geodatabase (left hand pane) holds multiple points, lines, polygons, tables and raster layers in the contents tab.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/geodatabase.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:6.94444in"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="geopackage" class="level4" data-number="1.2.2.5">
+<h4 data-number="1.2.2.5" class="anchored" data-anchor-id="geopackage"><span class="header-section-number">1.2.2.5</span> GeoPackage</h4>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/geopkg.png" class="img-fluid figure-img" style="width:1.38889in"></p>
+<figcaption>GeoPacakge logo</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>A GeoPackage is an open, standards-based, platform-independent, portable, self-describing, compact format for transferring geospatial data. It stores spatial data layers (vector and raster) as a single file, and is based upon an SQLite database, a widely used relational database management system, permitting code based, reproducible and transparent workflows. As it stores data in a single file it is very easy to share, copy or move.</p>
+</section>
+<section id="spatialite" class="level4" data-number="1.2.2.6">
+<h4 data-number="1.2.2.6" class="anchored" data-anchor-id="spatialite"><span class="header-section-number">1.2.2.6</span> SpatiaLite</h4>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/spatialite.png" class="img-fluid figure-img" style="width:1.38889in"></p>
+<figcaption>SpatialLite logo</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>SpatialLite is an open-source library that extends SQLite core. Support is fairly limited and most software that supports SpatiaLite also supports GeoPackage, as they both build upon SQLite. It doesn’t have any clear advantage over GeoPackage, however it is unable to support raster data.</p>
+</section>
+<section id="postgis" class="level4" data-number="1.2.2.7">
+<h4 data-number="1.2.2.7" class="anchored" data-anchor-id="postgis"><span class="header-section-number">1.2.2.7</span> PostGIS</h4>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/postGIS.jpg" class="img-fluid figure-img" style="width:1.38889in"></p>
+<figcaption>PostGIS logo</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>PostGIS is an opensource database extender for PostrgeSQL. Essentially PostgreSQL is a database and PostGIS is an add on which permits spatial functions. The advantages of using PostGIS over a GeoPackage are that it allows users to access the data at the same time, can handle large data more efficiently and reduces processing time. In <a href="https://medium.com/@GispoLearning/learn-spatial-sql-and-master-geopackage-with-qgis-3-16b1e17f0291">this example</a> calculating the number of bars per neighbourhood in Leon, Mexico the processing time reduced from 1.443 seconds (SQLite) to 0.08 seconds in PostGIS. However, data stored in PostGIS is much harder to share, move or copy.</p>
+</section>
+<section id="what-will-i-use" class="level4" data-number="1.2.2.8">
+<h4 data-number="1.2.2.8" class="anchored" data-anchor-id="what-will-i-use"><span class="header-section-number">1.2.2.8</span> What will I use</h4>
+<p>The variety of data formats can see a bit overwhelming. I still have to check how to load some of these data formats that I don’t use frequently. But don’t worry, most of the time you’ll be using shapefiles, GeoPackages or raster data.</p>
+</section>
+</section>
+</section>
+<section id="general-data-flow" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="general-data-flow"><span class="header-section-number">1.3</span> General data flow</h2>
+<p>As Grolemund and Wickham state in <a href="https://r4ds.had.co.nz/">R for Data Science</a>…</p>
+<blockquote class="blockquote">
+<p>“Data science is a huge field, and there’s no way you can master it by reading a single book.”</p>
+</blockquote>
+<p>However, a nice place to start is looking at the typical workflow of a data science (or GIS) project which you will see throughout these practicals, which is summarised nicely in this diagram produced by <a href="https://twitter.com/juliesquid">Dr.&nbsp;Julia Lowndes</a> adapted from Grolemund and Wickham.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="allisonhorst_images/environmental_data_science_r4ds_general.png" class="img-fluid figure-img" style="width:8.33333in"></p>
+<figcaption>Updated from Grolemund &amp; Wickham’s classis R4DS schematic, envisioned by Dr.&nbsp;Julia Lowndes for her 2019 useR! keynote talk and illustrated by Allison Horst. Source: <a href="https://github.com/allisonhorst/stats-illustrations">Allison Horst data science and stats illustrations</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>To begin you have to <strong>import</strong> your data (not necessarily environmental) into R or some other kind of GIS to actually be able to do any kind of analysis on it.</p>
+<p>Once imported you might need to <strong>tidy</strong> the data. This really depends on what kind of data it is and we cover this later on in the course. However, putting all of your data into a consistent structure will be very beneficial when you have to do analysis on it — as you can treat it all in the same way. Grolemund and Wickham state that data is tidy when “each column is a variable, and each row is an observation”, we cover this more in next week in the [Tidying data] section.</p>
+<p>When you have (or haven’t) tidied data you then will most likely want to <strong>transform</strong> it. Grolemund and Wickham define this as “narrowing in on observations of interest (like all people in one city, or all data from the last year), creating new variables that are functions of existing variables (like computing speed from distance and time), and calculating a set of summary statistics (like counts or means)”. However, from a GIS point of view I would also include putting all of your data into a similar projection, covered next week in [Changing projections] and any other basic process you might do before the core analysis. Arguably these processes could include things such as: clipping (cookie cutting your study area), buffering (making areas within a distance of a point) and intersecting (where two datasets overlap).</p>
+<p>Tidying and transform = data wrangling. Remember from the introduction this could be 50-80% of a data science job!</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="allisonhorst_images/dplyr_wrangling.png" class="img-fluid figure-img" style="width:6.25in"></p>
+<figcaption>dplyr introduction graphic. Source: <a href="https://github.com/allisonhorst/stats-illustrations">Allison Horst data science and stats illustrations</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>After you have transformed the data the next best thing to do is <strong>visualise</strong> it — even with some basic summary statistics. This simple step will often let you look at your data in a different way and select more appropriate analysis.</p>
+<p>Next up is <strong>modelling</strong>. Personally within GIS i’d say a better term is processing as the very data itself is usually a computer model of reality. The modelling or processing section is where you conduct the core analysis (more than the basic analysis already mentioned) and try to provide an answer to your research question.</p>
+<p>Finally you have to <strong>communicate</strong> your study and outputs, it doesn’t matter how good your data wrangling, modelling or processing is, if your intended audience can’t interpret it, well, it’s pretty much useless.</p>
+</section>
+<section id="uk-spatial-geography" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="uk-spatial-geography"><span class="header-section-number">1.4</span> UK spatial geography</h2>
+<p>In this practical we are going to take some regular data (without any geometry) and join it to a spatial data set so we can map it!</p>
+<p>Firstly we need spatial data. It can be quite a daunting task to attempt to understand all of the boundaries that are in use in England and Wales….briefly:</p>
+<p><strong>Statistical hierarchy</strong></p>
+<ul>
+<li><p>Statistical hierarchy are units that census data is collected, the smallest being an output area with around 100 residents.</p></li>
+<li><p>Output areas can be aggregated to Lower Super Output Areas (LSOAs) with between 1,000 and 3,000 residents. These can be further aggregated to Middle Super Output Areas (MSOAs).</p></li>
+<li><p>Output areas and LSOAs typically fit within administrative electoral wards (below)…</p></li>
+<li><p>Wards and MSOAs fit within local authority areas</p></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="https://www.towerhamlets.gov.uk/Documents/Borough_statistics/Research-tools-and-guidance/RB-Census2011-Census-Geography-Guide-2013-05.pdf"><img src="prac1_images/nesting.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="500" alt="Nesting areas"></a></p>
+</figure>
+</div>
+<figcaption>Nesting areas</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="https://ukdataservice.ac.uk/learning-hub/census/other-information/census-boundary-data/"><img src="prac1_images/nesting2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="400" alt="Nesting example"></a></p>
+</figure>
+</div>
+<figcaption>Nesting example</figcaption>
+</figure>
+</div>
+<ul>
+<li>Note that all the boundaries can change (e.g.&nbsp;Some LSOAs between the 2011 census and 2021 census moved). To account for this we can use lookup tables to match the new areas with the old ones.</li>
+</ul>
+<p><strong>Administarive hierarchy</strong></p>
+<ul>
+<li>Administrative areas are based on government areas and this depends on where you are in England….</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="https://geoportal.statistics.gov.uk/documents/ons::a-beginners-guide-to-uk-geography-2021-v1-0-1/explore"><img src="prac1_images/admin_flow.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="500" alt="A Beginner’s Guide to UK Geography"></a></p>
+</figure>
+</div>
+<figcaption>A Beginner’s Guide to UK Geography</figcaption>
+</figure>
+</div>
+<ul>
+<li><p>Some parts of England have a two tier structure. Counties take on expensive services - such as education and transport. Whilst local authority districts took on smaller services - such as planning permission, markets and local roads. Under all of this are electoral wards that have local Councillors…</p></li>
+<li><p>In 1974 a two tier system of counties and districts was enacted across England and Wales. In urban areas these were metropolitan counties and metropolitan districts..</p></li>
+<li><p>But in 1986 the metropolitan counties were removed (although still recognised) and the metropolitan districts were left as a single authority.</p></li>
+<li><p>From 1990 many of the tier structures (not in metropolitan areas) were combined into a single structure called Unitary Authorities, especially in medium-sized urban areas. However, some still retained the two tier structure.</p></li>
+</ul>
+<p>An <a href="https://www.towerhamlets.gov.uk/Documents/Borough_statistics/Research-tools-and-guidance/RB-Census2011-Census-Geography-Guide-2013-05.pdf">easy to read guide on census / administrative geography</a> was produced by the London Borough of Tower Hamlets - skip to page 2 for a visual summary.</p>
+</section>
+<section id="r-spatial-data-intro" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="r-spatial-data-intro"><span class="header-section-number">1.5</span> R Spatial data intro</h2>
+<p>R has a very well developed ecosystem of packages for working with Spatial Data. Early pioneers like Roger Bivand and Edzer Pebesma along with various colleagues were instrumental in writing packages to interface with some powerful open source libraries for working with spatial data, such as GDAL and GEOS. These were accessed via the <code>rgdal</code> and <code>rgeos</code> packages. The <code>maptools</code> package by Roger Bivand, amongst other things, allowed Shapefiles to be read into R. The <code>sp</code> package (along with <code>spdep</code>) by Edzer Pebesma was very important for defining a series of classes and methods for spatial data natively in R which then allowed others to write software to work with these formats. Many these original packages were retired (and superseded by the ones we will use today) at the end of 2023 as their maintainer Roger Bivand also retired. Other packages like <code>raster</code> advanced the analysis of gridded spatial data, while packages like <code>classInt</code> and <code>RColorbrewer</code> facilitated the binning of data and colouring of choropleth maps.</p>
+<p>Whilst these packages were extremely important for advancing spatial data analysis in R, they were not always the most straightforward to use — making a map in R could take quite a lot of effort and they were static and visually basic. However, more recently new packages have arrived to change this. Now <code>leaflet</code> enables R to interface with the leaflet javascript library for online, dynamic maps. <code>ggplot2</code> which was developed by Hadley Wickham and colleagues radically changed the way that people thought about and created graphical objects in R, including maps, and introduced a graphical style which has been the envy of other software to the extent that there are now libraries in Python which copy the <code>ggplot2</code> style!</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="allisonhorst_images/ggplot2_exploratory.png" class="img-fluid figure-img" style="width:6.25in"></p>
+<figcaption>ggplot2 introduction graphic. Source: <a href="https://github.com/allisonhorst/stats-illustrations">Allison Horst data science and stats illustrations</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Building on all of these, the new <code>tmap</code> (Thematic Map) package has changed the game completely and now enables us to read, write and manipulate spatial data and produce visually impressive and interactive maps, very easily. In parallel, the <code>sf</code> (Simple Features) package is helping us re-think the way that spatial data can be stored and manipulated. It’s exciting times for geographic information / spatial data science!</p>
+<section id="spatial-data-projections" class="level3" data-number="1.5.1">
+<h3 data-number="1.5.1" class="anchored" data-anchor-id="spatial-data-projections"><span class="header-section-number">1.5.1</span> Spatial data projections</h3>
+<p>Spatial data must be located somewhere on Earth and we need to represent this! We do this with Coordinate Reference Systems, shortened to CRS or often sometimes projections (although a projection is just one part of a coordinate reference system).</p>
+<p>Projections systems are mathematical formulas that specify how our data is represented on a map. These can either be call geographic coordiate reference systems or projected coordinate reference systems. The former treats data as a sphere and the latter as a flat object. You might come across phrases such as a resolution of 5 minutes or a resolution of 30 metres, which can be used to establish what kind of projection system has been used. Let me explain…</p>
+<p>A minute type of resolution (e.g.&nbsp;5 minute resolution) is a geographic reference system that treats the globe as if it was a sphere divided into 360 equal parts called degrees (which are angular units). Each degree has 60 minutes and each minute has 60 seconds. Arc-seconds of latitude (horizontal lines in the globe figure below) remain almost constant whilst arc-seconds of longitude (vertical lines in the globe figure below) decrease in a trigonometric cosine-based fashion as you move towards the Earth’s poles…</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/arcseconds.jpg" class="img-fluid figure-img" style="width:49.0%"></p>
+<figcaption>Latitude and Longitude. Source: <a href="https://www.thoughtco.com/degree-of-latitude-and-longitude-distance-4070616">ThoughtCo.</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>This causes problems as you increase or decrease latitude the longitudinal lengths alter…For example at the equator (0°, such as Quito) a degree is 111.3 km whereas at 60° (such as Saint Petersburg) a degree is 55.80 km …</p>
+<p><strong>In contrast</strong> a projected coordinate system is defined on a flat, two-dimensional plane (through projecting a spheroid onto a 2D surface) giving it constant lengths, angles and areas…</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/vector_lonlat.png" class="img-fluid figure-img" style="width:49.0%"></p>
+<figcaption>Illustration of vector (point) data in which location of London (the red X) is represented with reference to an origin (the blue circle). The left plot represents a geographic CRS with an origin at 0° longitude and latitude. The right plot represents a projected CRS with an origin located in the sea west of the South West Peninsula. Source: <a href="https://geocompr.robinlovelace.net/spatial-class.html">Lovelace et al.&nbsp;(2019) section 2.2</a></figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/vector_projected.png" class="img-fluid figure-img" style="width:49.0%"></p>
+<figcaption>Illustration of vector (point) data in which location of London (the red X) is represented with reference to an origin (the blue circle). The left plot represents a geographic CRS with an origin at 0° longitude and latitude. The right plot represents a projected CRS with an origin located in the sea west of the South West Peninsula. Source: <a href="https://geocompr.robinlovelace.net/spatial-class.html">Lovelace et al.&nbsp;(2019) section 2.2</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Knowing this, if we want to conduct analysis locally (e.g.&nbsp;at a national level) or use metric (e.g.&nbsp;kilometres) measurements we need to be able to change the projection of our data or “reproject” it. Most countries and even states have their own projected coordinate reference system such as British National Grid in the above example…Note how the origin (0,0) is has moved from the centre of the Earth to the bottom South West corner of the UK, which has now been ironed (or flattened) out.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Projection rules</strong></p>
+<p>Units are angular (e.g.&nbsp;degrees, latitude and longitude) or the data is global = Geographic coordinate reference system</p>
+<p>Units are linear (e.g.&nbsp;feet, metres) or data is at a local level (e.g.&nbsp;national, well the last one is not always true, but likely) = Projected coordinate reference system.</p>
+</div>
+</div>
+<p><br>
+You might hear some key words about projections that could terrify you! Let’s break them down:</p>
+<ul>
+<li>Ellipsoid (or spheroid) = size of shape of the Earth (3d)</li>
+<li>Datum = contains the point relationship (where the origin (0,0) of the map is) between a Cartesian coordinates (flat surface) and Earth’s surface. They can be local or geocentric (see below). They set the origin, the scale and orientation of the Coordiante Reference System (CRS).</li>
+<li>Local datum = changes the Ellipsoid to align with a certain location on the surface (e.g.&nbsp;BNG that uses the OSGB36 datum). A local datum is anything that isn’t the centre of the Earth.</li>
+<li>Geocentric datum = the centre is equal to the Earth’s centre of gravity (e.g.&nbsp;WGS84).</li>
+<li>Geodetic datum = global datum (see above for datum meaning) for representing features (e.g.&nbsp;points and polygons) on earth</li>
+<li>Geodesy (from which we get Geodetic) = measuring Earth’s shape and features (e.g.&nbsp;gravity field).</li>
+<li>Coordinate reference system (CRS) = Formula that defines how the 2D map (e.g.&nbsp;on your screen or a paper map) relates to the 3D Earth. Sometimes called a spatial Reference System (SRS). It also stores the datum information.</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Take home message</strong></p>
+<p>When you do analysis on multiple datasets make sure they are all use the same Coordinate Reference System.</p>
+<p>If it’s local (e.g.&nbsp;city of country analysis) then use a local projected CRS where possible.</p>
+</div>
+</div>
+</section>
+<section id="data-download" class="level3" data-number="1.5.2">
+<h3 data-number="1.5.2" class="anchored" data-anchor-id="data-download"><span class="header-section-number">1.5.2</span> Data download</h3>
+<p>Ok, after all that theory we can start downloading data! In this case we will be joining the “health in general” question from the 2021 census to LSOAs in London (although you could select any area).</p>
+<p>Make a new R project and <strong>put this data into a data folder</strong></p>
+<p>The health data be accessed either from:</p>
+<ul>
+<li><p><a href="https://www.ons.gov.uk/datasets/TS037/editions/2021/versions/3/filter-outputs/a3b1f055-4604-47a1-bcb6-c9d831f5f2e8#summary">The ONS</a>. <strong>Note</strong> make sure you have selected the right area (in our case LSOA).</p></li>
+<li><p><a href="https://data.london.gov.uk/dataset/2021-census-lsoa-qualifications-health-disability-and-care">The London data store</a>. Note this is excel data and the function we would need is <code>read_excel(excel document, sheet number)</code></p></li>
+</ul>
+<p>Our spatial data can also be accessed from either:</p>
+<ul>
+<li><p><a href="https://geoportal.statistics.gov.uk/datasets/766da1380a3544c5a7ca9131dfd4acb6/explore">The ONS</a></p></li>
+<li><p><a href="https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london">The London data store</a></p></li>
+</ul>
+<p>In this example i will use the health data from the ONS and spatial data from the London Datastore.</p>
+<p>First, load the packages we need:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then our data…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># spatial data</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>LSOAs <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_read</span>(<span class="st">"prac1_data/statistical-gis-boundaries-london/ESRI/LSOA_2011_London_gen_MHW.shp"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># health data</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>health <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">"prac1_data/TS037-2021-3-filtered-2024-01-24T17_28_55Z.csv"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To check our spatial data let’s make a quick map with the thematic maps pacakge (<code>tmap</code>) this works on the grammar of graphics (famous from <code>ggplots</code>), similar to the grammar of data manipulation (<code>tidyverse</code>) it works on a layered approach. Here we specify the dataset and then how we want to style it..In the most basic form…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Breaking News: tmap 3.x is retiring. Please test v4, e.g. with
+remotes::install_github('r-tmap/tmap')</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot or view - view will make it interactive</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>tmap mode set to plotting</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load the sf object</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(LSOAs) <span class="sc">+</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># style it with polygons.</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="at">col =</span> <span class="cn">NA</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01_geographic_data_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="wrangle" class="level3" data-number="1.5.3">
+<h3 data-number="1.5.3" class="anchored" data-anchor-id="wrangle"><span class="header-section-number">1.5.3</span> Wrangle</h3>
+<p>Before progressing it’s also good practice to standardise our column names…we can do so with the <code>janitor</code> package…</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="allisonhorst_images/janitor_clean_names.png" class="img-fluid figure-img" style="width:6.94444in"></p>
+<figcaption>janitor::clean_names() example. Source: <a href="https://github.com/allisonhorst/stats-illustrations">Allison Horst data science and stats illustrations</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>LSOAs <span class="ot">&lt;-</span> janitor<span class="sc">::</span><span class="fu">clean_names</span>(LSOAs)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>health <span class="ot">&lt;-</span> janitor<span class="sc">::</span><span class="fu">clean_names</span>(health)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next we need to join the health data to the spatial data…to do so need to identify a unique column in each dataset to perform the join on, such as a code for the LSOAs (e.g.&nbsp;lsoa11cd and lower layer super output areas code ).</p>
+<p>Once we have the code we can select a join type…</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/sql-joins.png" class="img-fluid figure-img" width="500"></p>
+<figcaption>SQL join types. Source: <a href="https://www.dofactory.com/sql/join">SQL Join Diagram, dofactory</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Typically in spatial analysis we use a left join - this retains everything in th left data (which is our spatial data set) and joins data from the right only where there are matches</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/left-join.gif" class="img-fluid figure-img" width="500"></p>
+<figcaption>dplyr::left_join() example. Source: <a href="https://www.garrickadenbuie.com/project/tidyexplain/">Tidy explain by Garrick Aden‑Buie</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><p>If there are multiple matches then a new row is created (e.g.&nbsp;If there were two health rows for a single LSOA)</p></li>
+<li><p>If there are no matches then the data is dropped (e.g.&nbsp;the LSOAs not in London), but the polygons (the left dataset) are retained.</p></li>
+<li><p>Note, if this were the case i could filter out the London LSOAs based on the <code>lad11cd</code> column starting with E09, something like.. <code>filter(str_detect(lad11cd, "^E09"))</code> or join the data and then filter based on NAs</p></li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/left-join-extra.gif" class="img-fluid figure-img" width="500"></p>
+<figcaption>dplyr::left_join() example. Source: <a href="https://www.garrickadenbuie.com/project/tidyexplain/">Tidy explain by Garrick Aden‑Buie</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>joined_data <span class="ot">&lt;-</span> LSOAs <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(., </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>            health,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"lsoa11cd"</span> <span class="ot">=</span> <span class="st">"lower_layer_super_output_areas_code"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="long-vs-wide-data" class="level3" data-number="1.5.4">
+<h3 data-number="1.5.4" class="anchored" data-anchor-id="long-vs-wide-data"><span class="header-section-number">1.5.4</span> Long vs wide data</h3>
+<p>You will get a warning saying that each row in x (the spatial data) was expected to match just 1 y row. However, our health data is long data (also called tidy data). This differs from “regular” wide data as…</p>
+<ol type="1">
+<li><p>Each variable (all values that have the same attribute, e.g.&nbsp;height, temperature, duration, weeks) must form its own column.</p></li>
+<li><p>Each observation must have its own row.</p></li>
+<li><p>Each value must have its own cell.</p></li>
+</ol>
+<p>Note, see <a href="https://vita.had.co.nz/papers/tidy-data.pdf">Wickham’s paper</a> for worked examples and definition of variables, from page 3.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/messy-tidy-ex.png" class="img-fluid figure-img" width="500"></p>
+<figcaption>This figure is taken directly from Grolemund and Wickham (2017) Chapter 12.Following three rules makes a dataset tidy: variables are in columns, observations are in rows, and values are in cells. Source: <a href="https://www.ksk-anl.com/blog/hadley-wickhams-tidy-data-in-rapidminer-part-1/">KSK analytics</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Typically in GIS we need our data messy (or wide) where the variables have their own column and each row is an area.</p>
+<p>To so do first we must make the data into a <code>tibble</code>..</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="prac1_images/data_structures2.png" class="img-fluid figure-img" width="450"></p>
+<figcaption>Data Object Type and Structure. Source: <a href="https://mgimond.github.io/ES218/Week02a.html#Data_structures">Exploratory Data Analysis in R, Gimond 2022</a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>We should reflect on data types in R, which will influence the structure we select. Note a tibble is very similar (the same!) to a dataframe, expect you are provided with additional information when printing.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>joined_data_wide <span class="ot">&lt;-</span> joined_data <span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>(.)<span class="sc">%&gt;%</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(lsoa11cd, general_health_6_categories, observation, usualres, hholdres, popden)<span class="sc">%&gt;%</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(.,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#    id_cols=1:8,</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> general_health_6_categories,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> observation)<span class="sc">%&gt;%</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clean_names</span>(.)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>When we make the tibble we lose the geometry column and so our data becomes non spatial again…really we could have done our wrangling first and then conducted a join! This will create a bit of a mess with columns too (as we already have some), so we will need to select the ones we want…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>joined_data_wide_joined <span class="ot">&lt;-</span> LSOAs <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(., </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>            joined_data_wide,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"lsoa11cd"</span> <span class="ot">=</span> <span class="st">"lsoa11cd"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(lsoa11cd, msoa11cd, usualres.x, hholdres.x, popden.x, does_not_apply, very_good_health, good_health, fair_health, bad_health, very_bad_health)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="map" class="level3" data-number="1.5.5">
+<h3 data-number="1.5.5" class="anchored" data-anchor-id="map"><span class="header-section-number">1.5.5</span> Map</h3>
+<p>Once we have the wide data we can compute other metrics - this is especially important for mapping as we must never map count data, unless the spatial units are the same size (e.g.&nbsp;hexagons). Instead we should normalise our data using some kind of common denominator….for example percent of usual residents with bad health…where the number of usual residents will vary across the spatial units.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>joined_data_wide_joined_map <span class="ot">&lt;-</span> joined_data_wide_joined<span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent_very_bad =</span> (very_bad_health<span class="sc">/</span>usualres.x)<span class="sc">*</span><span class="dv">100</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent_very_bad =</span> <span class="fu">round</span>(percent_very_bad, <span class="at">digits=</span><span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Make a basic map!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># select the sf object to map</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>tm1 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(joined_data_wide_joined_map) <span class="sc">+</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select what column to map</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"percent_very_bad"</span>, </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>              <span class="co"># set a palette </span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">palette=</span><span class="st">"PuBu"</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>tm1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01_geographic_data_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>There are some basic issues with our map that we can resolve…</p>
+<ol type="1">
+<li>The legend is covering the data and is using the object name (with underscores)</li>
+<li>No scale bar</li>
+<li>The LSOAs are fairly small and so it can be challenging to interpret them</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>tm1 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(joined_data_wide_joined_map) <span class="sc">+</span> </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select what column to map</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"percent_very_bad"</span>, </span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>              <span class="co"># set a palette </span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">palette=</span><span class="st">"PuBu"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>              <span class="co"># how the data should be divided</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">style=</span><span class="st">"jenks"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>              <span class="co"># legend title</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">title =</span> <span class="st">""</span>)<span class="sc">+</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_compass</span>(<span class="at">position =</span> <span class="fu">c</span>(<span class="st">"left"</span>, <span class="st">"top"</span>), <span class="at">size =</span> <span class="dv">2</span>)<span class="sc">+</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"% of population with very bad health"</span>,</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.outside=</span><span class="cn">FALSE</span>, </span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">frame =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.8</span>,<span class="dv">0</span>),</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.text.size =</span> <span class="dv">1</span>)<span class="sc">+</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># tm_layout(legend.outside.size = FALSE, </span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="co">#            legend.position= c("right", "top"))+</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_scale_bar</span>(<span class="at">position=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.03</span>), <span class="at">text.size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_credits</span>(<span class="st">"Data source: ONS and London Data store"</span>,</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>          <span class="at">position=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>), </span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>          <span class="at">size =</span> <span class="fl">0.8</span>, </span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>          <span class="at">align=</span><span class="st">"left"</span>) </span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>tm1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01_geographic_data_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>To export the map…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_save</span>(tm1, <span class="st">'very bad health.png'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This hasn’t solved the LSOA issue - whereby the map is challenging to read due to the spatial units used. We can consider aggregating our units to MSOA as that column is provided within the LSOA data…</p>
+<p>To do so we’d need to:</p>
+<ol type="1">
+<li>Aggregate our current data</li>
+<li>Load the MSOA spatial data, then join and map as above.</li>
+</ol>
+<p>To aggregate the data we use a function called <code>group_by()</code> which is always followed by <code>summarise()</code>. Group by places our data into groups based on a selected column (e.g.&nbsp;MSOA) and then summarises the data for each group (e.g.&nbsp;number of people with very bad health)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>MSOA_data <span class="ot">&lt;-</span> joined_data_wide_joined_map <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>(.)<span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>lsoa11cd, <span class="sc">-</span>geometry, <span class="sc">-</span>percent_very_bad)<span class="sc">%&gt;%</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(msoa11cd)<span class="sc">%&gt;%</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise_all</span>(sum)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>In the above code <code>select(-variable)</code> means drop that variable, this has allowed me to use the <code>summarise_all()</code> function as opposed to just <code>summarise()</code>. Now each column is aggregated to MSOA!</p>
+<p>Calculate the percentages</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>MSOA_data_percent <span class="ot">&lt;-</span> MSOA_data<span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent_very_bad =</span> (very_bad_health<span class="sc">/</span>usualres.x)<span class="sc">*</span><span class="dv">100</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent_very_bad =</span> <span class="fu">round</span>(percent_very_bad, <span class="at">digits=</span><span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Read in the MSOA spatial data</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>MSOAs <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_read</span>(<span class="st">"prac1_data/statistical-gis-boundaries-london/ESRI/MSOA_2011_London_gen_MHW.shp"</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>(.)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `MSOA_2011_London_gen_MHW' from data source 
+  `C:\Users\Andy\OneDrive - University College London\Teaching\Guest\Oxford_25\spatial analysis of public health\spatial-analysis-of-public-health-data-25\prac1_data\statistical-gis-boundaries-london\ESRI\MSOA_2011_London_gen_MHW.shp' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 983 features and 12 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 503574.2 ymin: 155850.8 xmax: 561956.7 ymax: 200933.6
+Projected CRS: OSGB36 / British National Grid</code></pre>
+</div>
+</div>
+<p>Join…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>MSOA_joined <span class="ot">&lt;-</span> MSOAs <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(., </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>            MSOA_data_percent,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"msoa11cd"</span> <span class="ot">=</span> <span class="st">"msoa11cd"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(msoa11cd, msoa11cd, usualres, hholdres, popden, does_not_apply, very_good_health, good_health, fair_health, bad_health, very_bad_health, percent_very_bad)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Map the MSOAs</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>tm2 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(MSOA_joined) <span class="sc">+</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select what column to map</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"percent_very_bad"</span>, </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>              <span class="co"># set a palette </span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">palette=</span><span class="st">"PuBu"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>              <span class="co"># how the data should be divided</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">style=</span><span class="st">"jenks"</span>,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>              <span class="co"># legend title</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">title =</span> <span class="st">""</span>)<span class="sc">+</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_compass</span>(<span class="at">position =</span> <span class="fu">c</span>(<span class="st">"left"</span>, <span class="st">"top"</span>), <span class="at">size =</span> <span class="dv">2</span>)<span class="sc">+</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"% of population with very bad health"</span>,</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.outside=</span><span class="cn">FALSE</span>, </span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">frame =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.8</span>,<span class="dv">0</span>),</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.text.size =</span> <span class="dv">1</span>)<span class="sc">+</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># tm_layout(legend.outside.size = FALSE, </span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">#            legend.position= c("right", "top"))+</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_scale_bar</span>(<span class="at">position=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.03</span>), <span class="at">text.size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_credits</span>(<span class="st">"Data source: ONS and London Data store"</span>,</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>          <span class="at">position=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>), </span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>          <span class="at">size =</span> <span class="fl">0.8</span>, </span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>          <span class="at">align=</span><span class="st">"left"</span>) </span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>tm2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01_geographic_data_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Plot them together…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>t<span class="ot">=</span><span class="fu">tmap_arrange</span>(tm1, tm2, <span class="at">ncol=</span><span class="dv">2</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>t</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01_geographic_data_files/figure-html/unnamed-chunk-34-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./software.html" class="pagination-link" aria-label="Software installation">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Software installation</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./02_point_patterns.html" class="pagination-link" aria-label="Point patterns and autocorrelation">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Point patterns and autocorrelation</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-24/edit/main/01_geographic_data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-24/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
