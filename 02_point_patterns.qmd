@@ -14,7 +14,60 @@ Point patterns
 
 ::: callout-important
 
-Add homework task
+The task today is to evaluate access to affordable supermarkets in Glasgow. I've selected Glasgow as the report [*"A picture of Britain’s deprived food deserts"*](https://www.kelloggs.co.uk/content/dam/europe/kelloggs_gb/pdf/Kelloggs_Food_Desert_Brochure.pdf) commissioned by Kellogs identifies 8 of Scotland’s 10 most deprived food deserts within the city.
+
+Whilst we can't get a definitive answer to this from today's session, we could look to see if:
+
+* there are areas of dispersion or clustering (e.g. Moran's I)
+* where there are intense high/low values (e.g. Getis ord Gi * )
+* what distance clustering occurs (e.g. Ripley's K)
+
+You do not need to produce a definitive answer, but come prepared to talk about the data, methods and issues tomorrow.
+
+**Data**
+
+* Boundary data
+  * Similar to LSOAs but in Scotland these are called *Data Zones*, download the ESRI shapefile: https://spatialdata.gov.scot/geonetwork/srv/eng/catalog.search#/metadata/7d3e8709-98fa-4d71-867c-d5c8293823f2
+  
+  * Glasgow local authority boundary: https://geoportal.statistics.gov.uk/datasets/ons::local-authority-districts-may-2024-boundaries-uk-bfe-2/about
+
+* Supermarkets
+  * We will use Open Street Map (OSM) to get the locations of supermarkets. OSM is Volunteered Geographic Information (VGI) where individuals have mapped features across the world that can be downloaded as spatial data. Features are categorised with [*keys* and *values*](https://wiki.openstreetmap.org/wiki/Map_features#Shop):
+  * Keys are topics (e.g. shop)
+  * Values are specific features (e.g. supermarket) 
+
+We could also change the data to focus on convenience stores, where there is often less selection of [healthy food and higher prices](https://www.resolvepoverty.org/wp-content/uploads/2018/11/Food-deserts-in-the-UK.pdf)
+
+There are many ways to access OSM:
+
+* Geofabrik (all data) download: https://download.geofabrik.de/europe/united-kingdom/scotland.html
+* QGIS 
+  * Install the QuickOSM GIS plugin
+  * Search for supermarket in your study area
+* R package `osmdata`
+
+```{r, eval=FALSE}
+library(osmdata)
+
+# you can just use the place name and it will look it up
+Bounding_box <- getbb("Glasgow")
+
+#or set it with an sf object
+#bbox <- st_bbox(glasgow_zones)
+
+# check it worked
+Bounding_box 
+
+# get the OSM data within the bounding box
+glasgow_supermarkets <- Bounding_box %>%
+  opq() %>%
+  add_osm_feature(key = "shop", 
+                  # value="convenience"
+                  value = "supermarket")%>%
+ osmdata_sf()
+
+glasgow_supermarket_points <- glasgow_supermarkets$osm_points
+```
 :::
 
 ## Learning outcomes
