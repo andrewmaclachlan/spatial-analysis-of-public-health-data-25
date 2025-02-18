@@ -220,7 +220,7 @@ Building on all of these, the new `tmap` (Thematic Map) package has changed the 
 
 Spatial data must be located somewhere on Earth and we need to represent this! We do this with Coordinate Reference Systems, shortened to CRS or often sometimes projections (although a projection is just one part of a coordinate reference system).
 
-Projections systems are mathematical formulas that specify how our data is represented on a map. These can either be call geographic coordiate reference systems or projected coordinate reference systems. The former treats data as a sphere and the latter as a flat object. You might come across phrases such as a resolution of 5 minutes or a resolution of 30 metres, which can be used to establish what kind of projection system has been used. Let me explain...
+Projection systems are mathematical formulas that specify how our data is represented on a map. These can either be call geographic coordinate reference systems or projected coordinate reference systems. The former treats data as a sphere and the latter as a flat object. You might come across phrases such as a resolution of 5 minutes or a resolution of 30 metres, which can be used to establish what kind of projection system has been used. Let me explain...
 
 A minute type of resolution (e.g. 5 minute resolution) is a geographic reference system that treats the globe as if it was a sphere divided into 360 equal parts called degrees (which are angular units). Each degree has 60 minutes and each minute has 60 seconds. Arc-seconds of latitude (horizontal lines in the globe figure below) remain almost constant whilst arc-seconds of longitude (vertical lines in the globe figure below) decrease in a trigonometric cosine-based fashion as you move towards the Earth's poles...
 
@@ -387,7 +387,7 @@ To so do first we must make the data into a `tibble`..
 knitr::include_graphics('prac1_images/data_structures2.png') 
 ```
 
-We should reflect on data types in R, which will influence the structure we select. Note a tibble is very similar (the same!) to a dataframe, expect you are provided with additional information when printing.
+We should reflect on data types in R, which will influence the structure we select. Note a tibble is very similar (essentially the same!) to a dataframe, except you are provided with additional information when printing.
 
 ```{r}
 library(tidyr)
@@ -415,7 +415,7 @@ joined_data_wide_joined <- LSOAs %>%
 
 ### Map
 
-Once we have the wide data we can compute other metrics - this is especially important for mapping as we must never map count data, unless the spatial units are the same size (e.g. hexagons). Instead we should normalise our data using some kind of common denominator....for example percent of usual residents with bad health...where the number of usual residents will vary across the spatial units.
+Once we have the wide data we can compute other metrics - this is especially important for mapping as we must ***never map count data***, unless the spatial units are the same size (e.g. hexagons). Instead we should normalise our data using some kind of common denominator....for example percent of usual residents with bad health...where the number of usual residents will vary across the spatial units.
 
 ```{r}
 joined_data_wide_joined_map <- joined_data_wide_joined%>%
@@ -437,7 +437,7 @@ tm1 <- tm_shape(joined_data_wide_joined_map) +
 tm1
 ```
 
-There are some basic issues with our map that we can resolve...
+There are some issues with our map that we can resolve...
 
 1.  The legend is covering the data and is using the object name (with underscores)
 2.  No scale bar

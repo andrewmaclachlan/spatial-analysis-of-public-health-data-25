@@ -263,7 +263,7 @@ window.Quarto = {
   <li><a href="#local-indicies-of-spatial-autocorrelation" id="toc-local-indicies-of-spatial-autocorrelation" class="nav-link" data-scroll-target="#local-indicies-of-spatial-autocorrelation"><span class="header-section-number">2.6</span> Local Indicies of Spatial Autocorrelation</a>
   <ul class="collapse">
   <li><a href="#morans-i-1" id="toc-morans-i-1" class="nav-link" data-scroll-target="#morans-i-1"><span class="header-section-number">2.6.1</span> Moran’s I</a></li>
-  <li><a href="#getis-ord-g_i" id="toc-getis-ord-g_i" class="nav-link" data-scroll-target="#getis-ord-g_i"><span class="header-section-number">2.6.2</span> Getis Ord (G_{i}^{*})</a></li>
+  <li><a href="#getis-ord-g_i" id="toc-getis-ord-g_i" class="nav-link" data-scroll-target="#getis-ord-g_i"><span class="header-section-number">2.6.2</span> Getis Ord <span class="math inline">\(G_{i}^{*}\)</span></a></li>
   </ul></li>
   <li><a href="#note" id="toc-note" class="nav-link" data-scroll-target="#note"><span class="header-section-number">2.7</span> Note</a>
   <ul class="collapse">
@@ -308,7 +308,7 @@ Note
 <p><strong>Reading</strong></p>
 <p>Point patterns</p>
 <ul>
-<li><p>Point Pattern Analysis (Chapter 11) + Chapter 13 Spatial Autocorrelation (Chapter 13), <a href="https://mgimond.github.io/Spatial/chp11_0.html">Intro to GIS and Spatial Analysis by Gimond (2023)</a></p></li>
+<li><p>Point Pattern Analysis (Chapter 11) + Spatial Autocorrelation (Chapter 13), <a href="https://mgimond.github.io/Spatial/chp11_0.html">Intro to GIS and Spatial Analysis by Gimond (2023)</a></p></li>
 <li><p><a href="https://www.jstor.org/stable/622936?casa_token=4DYSo5OC8DoAAAAA%3A1pOLjSzI-B1C3vzist48teaoymA1TofxCYZoJN8bIuCGn7-819JFHJIe3SfqiUTyOMMRRUBTHpT9smJab8Ne6MWo1T1MyI8g6Uz4ym0mVF6xfO1tv4Av&amp;seq=1#metadata_info_tab_contents">Spatial Point Pattern Analysis and Its Application in Geographical Epidemiology, Gatrell et al.&nbsp;(1996)</a></p></li>
 <li><p><a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.2009.00769.x">What Problem? Spatial Autocorrelation and Geographic Information Science</a> by Goodchild (2009).</p></li>
 </ul>
@@ -328,16 +328,16 @@ Important
 <p>Whilst we can’t get a definitive answer to this from today’s session, we could look to see if:</p>
 <ul>
 <li>there are areas of dispersion or clustering (e.g.&nbsp;Moran’s I)</li>
-<li>where there are intense high/low values (e.g.&nbsp;Getis ord Gi * )</li>
+<li>where there are intense high/low values (e.g.&nbsp;Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> )</li>
 <li>what distance clustering occurs (e.g.&nbsp;Ripley’s K)</li>
 </ul>
-<p>You do not need to produce a definitive answer, but come prepared to talk about the data, methods and issues tomorrow.</p>
+<p>You do not need to produce a <em>final</em> answer, but come prepared to talk about the data, methods and issues tomorrow.</p>
 <p><strong>Data</strong></p>
 <ul>
 <li>Boundary data
 <ul>
-<li><p>Similar to LSOAs but in Scotland these are called <em>Data Zones</em>, download the ESRI shapefile: https://spatialdata.gov.scot/geonetwork/srv/eng/catalog.search#/metadata/7d3e8709-98fa-4d71-867c-d5c8293823f2</p></li>
-<li><p>Glasgow local authority boundary: https://geoportal.statistics.gov.uk/datasets/ons::local-authority-districts-may-2024-boundaries-uk-bfe-2/about</p></li>
+<li><p>Similar to LSOAs but in Scotland these are called <em>Data Zones</em>, download the ESRI shapefile: <a href="https://spatialdata.gov.scot/geonetwork/srv/eng/catalog.search#/metadata/7d3e8709-98fa-4d71-867c-d5c8293823f2">https://spatialdata.gov.scot/geonetwork/srv/eng/catalog.search#/metadata/7d3e8709-98fa-4d71-867c-d5c8293823f2</a></p></li>
+<li><p>Glasgow local authority boundary: <a href="https://geoportal.statistics.gov.uk/datasets/ons::local-authority-districts-may-2024-boundaries-uk-bfe-2/about">https://geoportal.statistics.gov.uk/datasets/ons::local-authority-districts-may-2024-boundaries-uk-bfe-2/about</a></p></li>
 </ul></li>
 <li>Supermarkets
 <ul>
@@ -391,7 +391,7 @@ Important
 <li>Investigate the degree to which values at spatial points are similar (or different) to each other</li>
 <li>Interpret the meaning of spatial autocorrelation in spatial data</li>
 </ol>
-<p>Today’s lecture is available online…at this URL: https://andrewmaclachlan.github.io/Spatial-analysis-of-public-health-data-24-points-and-autocorrelation/#1</p>
+<p>Today’s lecture is available online…at this URL: <a href="https://andrewmaclachlan.github.io/Spatial-analysis-of-public-health-data-24-points-and-autocorrelation/#1">https://andrewmaclachlan.github.io/Spatial-analysis-of-public-health-data-24-points-and-autocorrelation/#1</a></p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="shareagain" style="min-width:300px;margin:1em auto;" data-exeternal="1">
@@ -422,7 +422,7 @@ Important
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spdep)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Get the pharmacy data: https://datashare.ed.ac.uk/handle/10283/2501 and load it</p>
+<p>Get the pharmacy data: <a href="https://datashare.ed.ac.uk/handle/10283/2501">https://datashare.ed.ac.uk/handle/10283/2501</a> and load it</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pharmacy <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"prac2_data/PharmacyEW/PharmacyEW.shp"</span>)<span class="sc">%&gt;%</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#remove any duplicates</span></span>
@@ -493,7 +493,7 @@ PROJCRS["OSGB36 / British National Grid",
 </div>
 </div>
 </div>
-<p>Get the London ward data and load it https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london</p>
+<p>Get the London ward data and load it <a href="https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london">https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london</a></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>wards<span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"prac2_data/statistical-gis-boundaries-london/statistical-gis-boundaries-london/ESRI/London_Ward_CityMerged.shp"</span>)<span class="sc">%&gt;%</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(.,<span class="dv">27700</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -526,7 +526,7 @@ Projected CRS: OSGB36 / British National Grid</code></pre>
 <section id="wrangle-data" class="level3" data-number="2.3.1">
 <h3 data-number="2.3.1" class="anchored" data-anchor-id="wrangle-data"><span class="header-section-number">2.3.1</span> Wrangle data</h3>
 <p>As we can see above the pharmacy data is for the whole of the UK and we are just interested in London. So, we need to spatially subset our points within our study area…</p>
-<p>Here, the second operator is blank , , - this controls which attributes are kept, although I’d rather keep all of them and manipulate with the <code>tidyverse</code>.</p>
+<p>Here, the second operator is blank <code>, ,</code> - this controls which columns are kept, although I’d rather keep all of them and manipulate with the <code>tidyverse</code> (e.g.&nbsp;<code>select(the columnns i want)</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>pharmacysub <span class="ot">&lt;-</span> pharmacy[wards, , op<span class="ot">=</span>st_within]</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -543,7 +543,7 @@ Projected CRS: OSGB36 / British National Grid</code></pre>
 </div>
 </div>
 </div>
-<p>When we spatial subset data like this there are different topological relations we can specify. The default is intersects, but we could also use <code>BluePlaquesSub &lt;- BluePlaques[BoroughMap, , op = st_within]</code>, with the operator or op set to <code>st_within</code>, to identify points completely within the borough outline, <a href="http://postgis.net/workshops/postgis-intro/spatial_relationships.html">or a variety of other options</a> such as <code>st_overlaps</code>, <code>st_touches</code>, <code>st_contains</code>, <code>st_disjoint</code>. Any possible topological relationship you can think of a function will exist for it…visually this looks like…where each tick denotes the relations that apply to the polygons. Note, that in several cases multiple topological relations would work.</p>
+<p>When we spatial subset data like this there are different topological relations we can specify. The default is intersects, but we could also use <code>pharmacysub &lt;- pharmacy[wards, , op=st_within]</code>, with the operator or op set to <code>st_within</code>, to identify points completely within the borough outline, <a href="http://postgis.net/workshops/postgis-intro/spatial_relationships.html">or a variety of other options</a> such as <code>st_overlaps</code>, <code>st_touches</code>, <code>st_contains</code>, <code>st_disjoint</code>. Any possible topological relationship you can think of a function will exist for it…visually this looks like the image below, where each tick denotes the relations that apply to the polygons. Note, that in several cases multiple topological relations would work.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -623,7 +623,7 @@ Projected CRS: OSGB36 / British National Grid</code></pre>
 </div>
 <section id="quadrat-analysis" class="level3" data-number="2.4.1">
 <h3 data-number="2.4.1" class="anchored" data-anchor-id="quadrat-analysis"><span class="header-section-number">2.4.1</span> Quadrat analysis</h3>
-<p>So as you saw in the lecture, we are interesting in knowing whether the distribution of points in our study area differs from ‘complete spatial randomness’ — CSR. That’s different from a CRS! Be careful!</p>
+<p>So as you saw in the lecture, we are interested in knowing whether the distribution of points in our study area differs from <strong><em>‘complete spatial randomness’ — CSR</em></strong>. That’s different from a CRS! Be careful!</p>
 <p>The most basic test of CSR is a quadrat analysis. We can carry out a simple quadrat analysis on our data using the <code>quadrat count()</code> function in <code>spatstat</code>. Note, I wouldn’t recommend doing a quadrat analysis in any real piece of analysis you conduct, but it is useful for starting to understand the Poisson distribution…</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#First plot the points</span></span>
@@ -753,7 +753,9 @@ Projected CRS: OSGB36 / British National Grid</code></pre>
 <h3 data-number="2.4.3" class="anchored" data-anchor-id="dbscan"><span class="header-section-number">2.4.3</span> DBSCAN</h3>
 <p>Quadrat and Ripley’s K analysis are useful exploratory techniques for telling us if we have spatial clusters present in our point data, but they are not able to tell us WHERE in our area of interest the clusters are occurring. To discover this we need to use alternative techniques. One popular technique for discovering clusters in space (be this physical space or variable space) is DBSCAN. For the complete overview of the DBSCAN algorithm, read the original paper by <a href="http://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf">Ester et al.&nbsp;(1996)</a> or consult the <a href="https://en.wikipedia.org/wiki/DBSCAN">wikipedia page</a></p>
 <p>DBSCAN requires you to input two parameters: 1. <em>Epsilon</em> - this is the radius within which the algorithm with search for clusters 2. <em>MinPts</em> - this is the minimum number of points that should be considered a cluster</p>
-<p>We could use the output of Ripley’s K to inform <em>Epsilon</em> or alternatively we can use <code>kNNdistplot()</code> from the <code>dbscan</code> package to find a suitable eps value based on the ‘knee’ in the plot…For <em>MinPts</em> we typically start with 4. But, try increasing the value of k in <code>kNNdistplot</code> you will notice as you increase it the knee becomes less obvious.</p>
+<p>We could use the output of Ripley’s K to inform <em>Epsilon</em> or alternatively we can use <code>kNNdistplot()</code> from the <code>dbscan</code> package to find a suitable eps value based on the ‘knee’ in the plot…</p>
+<p><code>kNNdistplot()</code> take the average distance to all neighbours then ploits the values in ascending order, where the “knee” is indicates a sudden increase in distance to neighbours.</p>
+<p>For <em>MinPts</em> we typically start with 4. But, try increasing the value of k in <code>kNNdistplot</code> you will notice as you increase it the knee becomes less obvious.</p>
 <ul>
 <li><p>If we have <em>MinPts</em> too low we have a massive cluster</p></li>
 <li><p>If we have <em>MinPts</em> too high we have a small single cluster</p></li>
@@ -793,7 +795,7 @@ Projected CRS: OSGB36 / British National Grid</code></pre>
 </div>
 </div>
 </div>
-<p>Our new db object contains lots of info including the cluster each set of point coordinates belongs to, whether the point is a seed point or a border point etc. We can get a summary by just calling the object. We can now add this cluster membership info back into our dataframe</p>
+<p>Our new <code>db</code> object contains lots of info including the cluster each set of point coordinates belongs to, whether the point is a seed point or a border point etc. We can get a summary by just calling the object. We can now add this cluster membership info back into our dataframe</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>pharmacysub_coords<span class="ot">&lt;-</span> pharmacysub_coords <span class="sc">%&gt;%</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dbcluster=</span>db<span class="sc">$</span>cluster)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -823,12 +825,13 @@ Projected CRS: OSGB36 / British National Grid</code></pre>
 </section>
 <section id="spatial-autocorrelation" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="spatial-autocorrelation"><span class="header-section-number">2.5</span> Spatial Autocorrelation</h2>
-<p>In this section we are going to explore patterns of spatially referenced continuous observations using various measures of spatial autocorrelation. Spatial autocorrelation is a measure of similarity between nearby data. We need to add all the points to the London wards then compute a density per ward could also use population here too! or some other data that can give us meaningful comparisons for our variable of interest.</p>
+<p>In this section we are going to explore patterns of spatially referenced continuous observations using various measures of spatial autocorrelation. Spatial autocorrelation is a measure of similarity between nearby data. We need to add all the points to the London wards then compute <strong><em>a density per ward</em></strong> could also use population here too! or some other data that can give us meaningful comparisons for our variable of interest.</p>
 <section id="wrangle-data-1" class="level3" data-number="2.5.1">
 <h3 data-number="2.5.1" class="anchored" data-anchor-id="wrangle-data-1"><span class="header-section-number">2.5.1</span> Wrangle data</h3>
 <p>To do so we need to use a spatial join!</p>
 <p>This is similar to the the joins (e.g.&nbsp;left joins) we explored with attribute data but here we just want to join datasets together based on their geometry and keep all their attribute data, this is useful in the code below where i want to join the pharmacies to the LSOA data</p>
-<p>The output will be a massive dataset where each pharmacy will be a new row and will retain the attributes of the pharmacy data but also append the attribute of the LSOA <code>st_join()</code> defaults to a left join, so in this case the LSOA data is the left dataset and all the right data has been appended to it. If the left data (LSOA) had no matches (so no pharmacies) it would still appear in the final dataset. The default argument for this is <code>st_intersects</code> but we could also use other topological relationship functions such as <code>st_within()</code> instead…</p>
+<p>The output will be a massive dataset where each pharmacy will be a new row and will retain the attributes of the pharmacy data but also append the attribute of the LSOA.</p>
+<p>The spatial join function,<code>st_join()</code>, defaults to a left join, so in this case the LSOA data is the left dataset and all the right data has been appended to it. If the left data (LSOA) had no matches (so no pharmacies) it would still appear in the final dataset. The default argument for this is <code>st_intersects</code> but we could also use other topological relationship functions such as <code>st_within()</code> instead…</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>example<span class="ot">&lt;-</span><span class="fu">st_intersects</span>(wards, pharmacysub)</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -849,8 +852,8 @@ first 10 elements:
  10: 43, 56</code></pre>
 </div>
 </div>
-<p>Here the polygon with the ID of 7 Chessington North and Hook has two pharmacies within it…we can check this with <code>st_join</code> (or using QGIS by opening the data).</p>
-<p>But note the ID column added is different to the ID of the data…open pharmacysub from the environment window and you will see the IDs that were returned in <code>st_intersects()</code>. The new IDs above take the data and apply 1 to n, where n is the end of the data. So if we subset our pharmacies on row 60 and 66 it will match our result here.</p>
+<p>Here the polygon with the ID of 7, Chessington North and Hook, has two pharmacies within it…we can check this with <code>st_join</code> (or using QGIS by opening the data).</p>
+<p>But note the ID column added is different to the ID of the data…open <code>pharmacysub</code> from the environment window and you will see the IDs that were returned in <code>st_intersects()</code>. The new IDs above take the data and apply 1 to n, where n is the end of the data. So if we subset our pharmacies on row 60 and 66 it will match our result here.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>check_example <span class="ot">&lt;-</span> wards<span class="sc">%&gt;%</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_join</span>(pharmacysub)<span class="sc">%&gt;%</span></span>
@@ -935,7 +938,7 @@ Projected CRS: OSGB36 / British National Grid
 <p>Now we need to generate a spatial weights matrix (remember from the lecture). We’ll start with a simple binary matrix of queen’s case neighbours (otherwise known as Contiguity edges corners). This method means that polygons with a shared edge or a corner will be included in computations for the target polygon…A spatial weight matrix represents the spatial element of our data, this means we are trying to conceptualize and model how parts of the data are linked (or not linked) to each other spatially, using rules that we will set.</p>
 <p>If the features share a boundary they are contiguous, this can also be classed as only common boundaries — a rook (like chess a rook can move forwards or side wards) or any point in common (e.g.&nbsp;corners / other boundaries) — a queen (like chess a queen can move forwards, backwards or on a diagonal).</p>
 <p><strong>Alternatively</strong> instead of using contiguous relationships you can use distance based relationships. This is frequently done with k nearest neighbours in which k is set to the closest observations. e.g.&nbsp;K=3 means the three closest observations.</p>
-<p>In the first instance we must create a neighbours list — which is a list of all the neighbours. To do so we will use <code>poly2nb()</code> with the argument <code>queen=T</code> saying we want a to use Queens case. Let’s see a summary of the output</p>
+<p>In the first instance we must create a neighbours list — which is a list of all the neighbours. To do so we will use polygon to neigbhour function <code>poly2nb()</code> with the argument <code>queen=T</code> saying we want a to use Queens case. Let’s see a summary of the output</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create a neighbours list</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>lward_nb <span class="ot">&lt;-</span> points_sf_joined <span class="sc">%&gt;%</span></span>
@@ -960,7 +963,7 @@ Link number distribution:
 313 612 with 12 links</code></pre>
 </div>
 </div>
-<p>plot them - we can’t use <code>tmap</code> as it isn’t class of sf, starts, spatial raster not spatraster…</p>
+<p>plot them - we can’t use <code>tmap</code> as it isn’t the right class (e.g.&nbsp;it’s not an <code>sf</code> object)</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lward_nb, <span class="fu">st_geometry</span>(coordsW), <span class="at">col=</span><span class="st">"red"</span>)</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co">#add a map underneath</span></span>
@@ -973,7 +976,7 @@ Link number distribution:
 </div>
 </div>
 </div>
-<p>Next take our weight list and make it into a matrix …style here denotes the weight type:</p>
+<p>Next take our weight list and make it into a matrix through the neigbhour to matix function (<code>nb2mat</code>) …style here denotes the weight type:</p>
 <ul>
 <li>B is the basic binary coding (1/0)</li>
 <li>W is row standardised (sums over all links to n)</li>
@@ -1001,17 +1004,19 @@ Link number distribution:
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>lward_lw <span class="ot">&lt;-</span> lward_nb <span class="sc">%&gt;%</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nb2listw</span>(., <span class="at">style=</span><span class="st">"W"</span>,  <span class="at">zero.policy=</span><span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Now let’s run Moran’s I - test tells us whether the values at neighbouring sites are similar to the target site (giving a Moran’s I close to 1) or the value of the taget is different to the neighbours (close to -1)</p>
+<p>Now let’s run Moran’s I. This test tells us whether the values at neighbouring sites are <strong>similar to the target site</strong> (giving a Moran’s I close to 1) or the value of the target is <strong>different</strong> to the neighbours (close to -1)</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>i_lWard_global_density <span class="ot">&lt;-</span> points_sf_joined <span class="sc">%&gt;%</span></span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(density) <span class="sc">%&gt;%</span></span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.vector</span>()<span class="sc">%&gt;%</span></span>
 <span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">moran.test</span>(., lward_lw, <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>The argument <code>zero.policy = TRUE</code> allows neighbours with no values.</p>
 </section>
 <section id="gearys-c" class="level3" data-number="2.5.4">
 <h3 data-number="2.5.4" class="anchored" data-anchor-id="gearys-c"><span class="header-section-number">2.5.4</span> Geary’s C</h3>
-<p>Geary’s C - tells us whether similar values or dissimilar values are clustering - Geary’s C falls between 0 and 2; 1 means no spatial autocorrelation, &lt;1 - positive spatial autocorrelation or similar values clustering, &gt;1 - negative spatial autocorreation or dissimilar values clustering)</p>
+<p>Geary’s C tells us whether similar values or dissimilar values are clustering.</p>
+<p>It falls between 0 and 2; 1 means no spatial autocorrelation, &lt;1 - positive spatial autocorrelation or similar values clustering, &gt;1 - negative spatial autocorreation or dissimilar values clustering)</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>c_lward_global_density <span class="ot">&lt;-</span> </span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  points_sf_joined <span class="sc">%&gt;%</span></span>
@@ -1041,7 +1046,7 @@ recommended (especially for distance bands)</code></pre>
 <h2 data-number="2.6" class="anchored" data-anchor-id="local-indicies-of-spatial-autocorrelation"><span class="header-section-number">2.6</span> Local Indicies of Spatial Autocorrelation</h2>
 <section id="morans-i-1" class="level3" data-number="2.6.1">
 <h3 data-number="2.6.1" class="anchored" data-anchor-id="morans-i-1"><span class="header-section-number">2.6.1</span> Moran’s I</h3>
-<p>We can now also calculate local versions of the Moran’s I statistic (for each Ward) and a Getis Ord (G_{i}^{<em>}) statistic to see</em> where* we have hot-spots…</p>
+<p>We can now also calculate local versions of the Moran’s I statistic (for each Ward) and a Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> statistic to see <strong><em>where</em></strong> we have hot-spots…</p>
 <p>Local Moran’s I is:</p>
 <ul>
 <li>The difference between a value and neighbours * the sum of differences between neighbours and the mean</li>
@@ -1055,7 +1060,7 @@ recommended (especially for distance bands)</code></pre>
 </blockquote>
 <p>If our value is towards the tails of the distribution then it is unlikely that the value is completely spatially random and we can reject the null hypothesis…as it is not what we expect at this location.</p>
 <p>In the example where we use a z-score of &gt;2.58 or &lt;-2.58 we interpret this as…</p>
-<p>…&gt; 2.58 or &lt;-2.58 standard deviations away from the mean are significant at the 99% level…this means there is a &lt;1% chance that autocorrelation is not present</p>
+<p>…&gt; 2.58 or &lt;-2.58 standard deviations away from the mean are significant at the 99% level…<strong><em>this means there is a &lt;1% chance that autocorrelation is not present</em></strong></p>
 <p>The <a href="https://storymaps.arcgis.com/stories/5b26f25bb81a437b89003423505e2f71">Global vs location spatial autocorrelation resource</a> goes through the specific formulas here, but the most important parts are knowing</p>
 <ul>
 <li>What we are comparing values to in Local Moran’s I</li>
@@ -1082,7 +1087,7 @@ recommended (especially for distance bands)</code></pre>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>breaks2<span class="ot">&lt;-</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">1000</span>,<span class="sc">-</span><span class="fl">2.58</span>,<span class="sc">-</span><span class="fl">1.96</span>,<span class="sc">-</span><span class="fl">1.65</span>,<span class="fl">1.65</span>,<span class="fl">1.96</span>,<span class="fl">2.58</span>,<span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Now create a new diverging colour brewer palette and reverse the order using rev() (reverse) so higher values correspond to red - see https://www.r-graph-gallery.com/38-rcolorbrewers-palettes.html</p>
+<p>Now create a new diverging colour brewer palette and reverse the order using rev() (reverse) so higher values correspond to red - see <a href="https://www.r-graph-gallery.com/38-rcolorbrewers-palettes.html">https://www.r-graph-gallery.com/38-rcolorbrewers-palettes.html</a></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>MoranColours<span class="ot">&lt;-</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">8</span>, <span class="st">"RdGy"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1126,8 +1131,8 @@ recommended (especially for distance bands)</code></pre>
 </div>
 </section>
 <section id="getis-ord-g_i" class="level3" data-number="2.6.2">
-<h3 data-number="2.6.2" class="anchored" data-anchor-id="getis-ord-g_i"><span class="header-section-number">2.6.2</span> Getis Ord (G_{i}^{*})</h3>
-<p>What about the Getis Ord (G_{i}^{*}) statistic for hot and cold spots…</p>
+<h3 data-number="2.6.2" class="anchored" data-anchor-id="getis-ord-g_i"><span class="header-section-number">2.6.2</span> Getis Ord <span class="math inline">\(G_{i}^{*}\)</span></h3>
+<p>What about the Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> statistic for hot and cold spots…</p>
 <p>This is a very similar concept to Local Moran’s I except it just returns a z-score…remember that a z-score shows <strong>how many standard deviations a value (our value) is away (above or below) from the mean (of the expected values)</strong></p>
 <p>Ultimately a z-score is defined as:</p>
 <p><span class="math display">\[Z = \frac{x-\mu}{\sigma}\]</span> Where:</p>
@@ -1137,13 +1142,13 @@ recommended (especially for distance bands)</code></pre>
 <li><span class="math inline">\(\sigma\)</span> = standard deviation of sample</li>
 </ul>
 <p><strong>Note</strong>, consult the <a href="https://storymaps.arcgis.com/stories/5b26f25bb81a437b89003423505e2f71">Global vs location spatial autocorrelation resource</a> for how this is computed in Local Moran’s I if you are interested, although interpretation is the most important part here.</p>
-<p><strong>However</strong>, in the case of Getis Ord (G_{i}^{*}) this is the local sum (of the neighbourhood) compared to the sum of all features</p>
-<p>In Moran’s I this is just the value of the spatial unit (e.g.&nbsp;polygon of the ward) compared to the neighbouring units.</p>
+<p><strong>However</strong>, in the case of Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> this is the local sum (of the neighbourhood) compared to <strong>the sum of all features</strong></p>
+<p>In Moran’s I this is just the value of the spatial unit (e.g.&nbsp;polygon of the ward) compared to the <strong>neighbouring units</strong>.</p>
 <p>Here, to be significant (or a hot spot) we will have a high value surrounded by high values. The local sum of these values will be different to the expected sum (think of this as all the values in the area) then where this difference is large we can consider it to be not by chance…</p>
 <p>The same z-score criteria then applies as before..</p>
-<p>This summary from L3 Harris nicely summaries the Getis Ord (G_{i}^{*}) output…</p>
+<p>This summary from L3 Harris nicely summaries the Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> output…</p>
 <blockquote class="blockquote">
-<p>The result of Getis Ord (G_{i}^{*}) analysis is an array of Z-scores, one for each pixel [or polygon], which is the number of standard deviations that the pixel [or polygon] and its neighbors are from the global mean. High Z-scores indicate more intense clustering of high pixel values, indicating hot spots. Low Z-scores indicate more intense clustering of low values, indicating cold spots. Individual pixels with high or low values by themselves might be interesting but not necessarily significant.</p>
+<p>The result of Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> analysis is an array of Z-scores, one for each pixel [or polygon], which is the number of standard deviations that the pixel [or polygon] and its neighbors are from the global mean. High Z-scores indicate more intense clustering of high pixel values, indicating hot spots. Low Z-scores indicate more intense clustering of low values, indicating cold spots. Individual pixels with high or low values by themselves might be interesting but not necessarily significant.</p>
 </blockquote>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>gi_lward_local_density <span class="ot">&lt;-</span> points_sf_joined <span class="sc">%&gt;%</span></span>
@@ -1154,7 +1159,7 @@ recommended (especially for distance bands)</code></pre>
 <span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>points_sf_joined <span class="ot">&lt;-</span> points_sf_joined <span class="sc">%&gt;%</span></span>
 <span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">density_G =</span> <span class="fu">as.numeric</span>(gi_lward_local_density))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><strong>Note</strong> that because of the differences in Moran’s I and Getis Ord (G_{i}^{*}) there will be differences between polygons that are classed as significant.</p>
+<p><strong>Note</strong> that because of the differences in Moran’s I and Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> there will be differences between polygons that are classed as significant.</p>
 <p>And map the outputs…</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>gicolours<span class="ot">&lt;-</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">8</span>, <span class="st">"RdBu"</span>))</span>
@@ -1180,7 +1185,8 @@ recommended (especially for distance bands)</code></pre>
 <section id="note" class="level2" data-number="2.7">
 <h2 data-number="2.7" class="anchored" data-anchor-id="note"><span class="header-section-number">2.7</span> Note</h2>
 <p>In the analysis you might see a Moran plot where the values of our variable (density of pharmacies) and plotted against (on the y axis) the spatially lagged version (the average value of the same attribute at neighboring locations). <strong>However</strong> this plot below shows the value of density in relation to the spatial weight matrix…</p>
-<p>This is useful as we can express the level of spatial association of each observation with its neighboring ones. Points in the upper right (or high-high) and lower left (or low-low) quadrants indicate positive spatial association of values that are higher and lower than the sample mean, respectively. The lower right (or high-low) and upper left (or low-high) quadrants include observations that exhibit negative spatial association; that is, these observed values carry little similarity to their neighboring ones. Source: https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_variogram_details31.htm#:~:text=The%20Moran%20scatter%20plot%20(Anselin,known%20as%20the%20response%20axis.</p>
+<p>This is useful as we can express the level of spatial association of each observation with its neighboring ones. Points in the upper right (or high-high) and lower left (or low-low) quadrants indicate positive spatial association of values that are higher and lower than the sample mean, respectively. The lower right (or high-low) and upper left (or low-high) quadrants include observations that exhibit negative spatial association; that is, these observed values carry little similarity to their neighboring ones.</p>
+<p>Source: [STAT user guide](https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_variogram_details31.htm#:~:text=The%20Moran%20scatter%20plot%20(Anselin,known%20as%20the%20response%20axis.)</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>moran_plot_lward_global_density <span class="ot">&lt;-</span> points_sf_joined <span class="sc">%&gt;%</span></span>
 <span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(density)<span class="sc">%&gt;%</span></span>
@@ -1242,8 +1248,8 @@ recommended (especially for distance bands)</code></pre>
 </div>
 </div>
 </div>
-<p>Source: https://rpubs.com/quarcs-lab/spatial-autocorrelation</p>
-<p>This might seem somewhat confusing as if we look in the South East we have low values of Getis Ord (G_{i}^{*}) yet we have shown that these are low (density) and high Moran’s I. But as <a href="https://www.mattpeeples.net/modules/LISA.html">Matthew Peeples</a> concisely summarises remember…</p>
+<p>Source: <a href="https://rpubs.com/quarcs-lab/spatial-autocorrelation">Carlos Mendez</a></p>
+<p>This might seem somewhat confusing as if we look in the South East we have low values of Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> yet we have shown that these are low (density) and high Moran’s I. But as <a href="https://www.mattpeeples.net/modules/LISA.html">Matthew Peeples</a> concisely summarises remember…</p>
 <ul>
 <li><p>Moran’s I is a measure of the degree to which the value at a target site is similar to values at adjacent sites. Moran’s I is large and positive when the value for a given target (or for all locations in the global case) is similar to adjacent values and negative when the value at a target is dissimilar to adjacent values.</p></li>
 <li><p>Getis Ord <span class="math inline">\(G_{i}^{*}\)</span> identifies areas where high or low values cluster in space. It is high where the sum of values within a neighborhood of a given radius or configuration is high relative to <strong>the global average</strong> and negative where the sum of values within a neighborhood are small relative to the global average and approaches 0 at intermediate values.</p></li>
@@ -1259,7 +1265,7 @@ recommended (especially for distance bands)</code></pre>
 <li>For example….we could now look to see if there is clustering of “Deaths from causes considered preventable, under 75 years, standardised mortality ratio” and if that aligns with (or can be explained by) access / clusters of pharmacies.</li>
 <li>If you wanted to do this (e.g.&nbsp;see if the ratio was clustered), the data is in a somewhat unfriendly format so you’d need to:
 <ul>
-<li>Download the data for ward from here: https://fingertips.phe.org.uk/profile/local-health/data#page/9/gid/1938133184/ati/8/iid/93227/age/1/sex/4/cat/-1/ctp/-1/yrr/5/cid/4/tbm/1</li>
+<li>Download <a href="https://fingertips.phe.org.uk/profile/local-health/data#page/9/gid/1938133184/ati/8/iid/93227/age/1/sex/4/cat/-1/ctp/-1/yrr/5/cid/4/tbm/1">the public health profile ward data:</a></li>
 <li>Read the Indicator definitions for the last row, specifically column G which tells us how it’s created.</li>
 <li>Filter the data based on the indicator value of 93480 (from the Indicator definitions)</li>
 <li>Filter out the London wards - as we did here and join it to our spatial feature.</li>
@@ -1274,7 +1280,7 @@ recommended (especially for distance bands)</code></pre>
 <h3 data-number="2.7.2" class="anchored" data-anchor-id="extensions"><span class="header-section-number">2.7.2</span> Extensions</h3>
 <ul>
 <li>The use of OPTICS</li>
-<li>We have spatial autocorrelation now can we try and model local differences in density of pharmacies - i.e.&nbsp;what factors might (or might not) explain the difference here — https://andrewmaclachlan.github.io/CASA0005repo/explaining-spatial-patterns.html.</li>
+<li>We have spatial autocorrelation now can we try and model local differences in density of pharmacies - i.e.&nbsp;what factors might (or might not) explain the <a href="https://andrewmaclachlan.github.io/CASA0005repo/explaining-spatial-patterns.html">difference here</a></li>
 <li>Or perhaps does the distance to pharmacies assist in explaining deaths from causes considered preventable, under 75 years. Similarly, we could even use this as a dummy variable (yes/no the areas is / is not in a cluster of pharmacies) in a regression model.</li>
 </ul>
 

@@ -541,7 +541,7 @@ Important
 <section id="spatial-data-projections" class="level3" data-number="1.5.1">
 <h3 data-number="1.5.1" class="anchored" data-anchor-id="spatial-data-projections"><span class="header-section-number">1.5.1</span> Spatial data projections</h3>
 <p>Spatial data must be located somewhere on Earth and we need to represent this! We do this with Coordinate Reference Systems, shortened to CRS or often sometimes projections (although a projection is just one part of a coordinate reference system).</p>
-<p>Projections systems are mathematical formulas that specify how our data is represented on a map. These can either be call geographic coordiate reference systems or projected coordinate reference systems. The former treats data as a sphere and the latter as a flat object. You might come across phrases such as a resolution of 5 minutes or a resolution of 30 metres, which can be used to establish what kind of projection system has been used. Let me explain…</p>
+<p>Projection systems are mathematical formulas that specify how our data is represented on a map. These can either be call geographic coordinate reference systems or projected coordinate reference systems. The former treats data as a sphere and the latter as a flat object. You might come across phrases such as a resolution of 5 minutes or a resolution of 30 metres, which can be used to establish what kind of projection system has been used. Let me explain…</p>
 <p>A minute type of resolution (e.g.&nbsp;5 minute resolution) is a geographic reference system that treats the globe as if it was a sphere divided into 360 equal parts called degrees (which are angular units). Each degree has 60 minutes and each minute has 60 seconds. Arc-seconds of latitude (horizontal lines in the globe figure below) remain almost constant whilst arc-seconds of longitude (vertical lines in the globe figure below) decrease in a trigonometric cosine-based fashion as you move towards the Earth’s poles…</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
@@ -767,7 +767,7 @@ remotes::install_github('r-tmap/tmap')</code></pre>
 </div>
 </div>
 </div>
-<p>We should reflect on data types in R, which will influence the structure we select. Note a tibble is very similar (the same!) to a dataframe, expect you are provided with additional information when printing.</p>
+<p>We should reflect on data types in R, which will influence the structure we select. Note a tibble is very similar (essentially the same!) to a dataframe, except you are provided with additional information when printing.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -791,7 +791,7 @@ remotes::install_github('r-tmap/tmap')</code></pre>
 </section>
 <section id="map" class="level3" data-number="1.5.5">
 <h3 data-number="1.5.5" class="anchored" data-anchor-id="map"><span class="header-section-number">1.5.5</span> Map</h3>
-<p>Once we have the wide data we can compute other metrics - this is especially important for mapping as we must never map count data, unless the spatial units are the same size (e.g.&nbsp;hexagons). Instead we should normalise our data using some kind of common denominator….for example percent of usual residents with bad health…where the number of usual residents will vary across the spatial units.</p>
+<p>Once we have the wide data we can compute other metrics - this is especially important for mapping as we must <strong><em>never map count data</em></strong>, unless the spatial units are the same size (e.g.&nbsp;hexagons). Instead we should normalise our data using some kind of common denominator….for example percent of usual residents with bad health…where the number of usual residents will vary across the spatial units.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>joined_data_wide_joined_map <span class="ot">&lt;-</span> joined_data_wide_joined<span class="sc">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent_very_bad =</span> (very_bad_health<span class="sc">/</span>usualres.x)<span class="sc">*</span><span class="dv">100</span>)<span class="sc">%&gt;%</span></span>
@@ -815,7 +815,7 @@ remotes::install_github('r-tmap/tmap')</code></pre>
 </div>
 </div>
 </div>
-<p>There are some basic issues with our map that we can resolve…</p>
+<p>There are some issues with our map that we can resolve…</p>
 <ol type="1">
 <li>The legend is covering the data and is using the object name (with underscores)</li>
 <li>No scale bar</li>

@@ -356,7 +356,7 @@ Projected CRS: NZGD2000 / New Zealand Transverse Mercator 2000</code></pre>
 </section>
 <section id="wrangle" class="level3" data-number="4.2.2">
 <h3 data-number="4.2.2" class="anchored" data-anchor-id="wrangle"><span class="header-section-number">4.2.2</span> Wrangle</h3>
-<p>The <code>.csv</code> we have loaded contains all the data from the week 1 excel homework in a wide format - that means all the SA1s, SA2s and so are are a new row making a huge data file. Normally i would suggest a cool data sciency way to pull out our Territorial Authorities, however i can’t see anything that would work. For example, we could try and detect part of a string like “City” or “District” however they appear in other geographies.</p>
+<p>The <code>.csv</code> we have loaded contains all the data from the week 1 excel homework in a wide format - that means all the SA1s, SA2s etc are are a new row making a huge data file. Normally i would suggest a cool data sci-ency way to pull out our Territorial Authorities, however i can’t see anything that would work. For example, we could try and detect part of a string like “City” or “District” but they appear in other geographies.</p>
 <p>So, until i can think or a better way we are resigned to subsetting by rows!</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
@@ -382,7 +382,7 @@ Projected CRS: NZGD2000 / New Zealand Transverse Mercator 2000</code></pre>
 <li>no qualification, <a href="https://www.careers.govt.nz/articles/ncea-compared-with-school-c-and-bursary/#cID_8307">see the New Zealand gov careers website for what qualification levels mean</a></li>
 <li>we’ll also try and include some spatial data (e.g.&nbsp;density of tobacco shops) at the very end…</li>
 </ul>
-<p>However, because we are using spatial units and they may differ in size we should normalise our count data (everything but median income which is continous).</p>
+<p>Because we are using spatial units and they may differ in size we should normalise our count data (everything but median income which is continous).</p>
 <p>To do so i will use the “total” column for each variable, although you could also use <a href="https://www.stats.govt.nz/information-releases/2018-census-population-and-dwelling-counts#:~:text=The%202018%20Census%20usually%20resident,and%202013%20(0.7%20percent).">population count</a></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>census_authorities_data <span class="ot">&lt;-</span> census_authorities <span class="sc">%&gt;%</span></span>
@@ -586,7 +586,7 @@ F-statistic:  60.8 on 1 and 66 DF,  p-value: 6.097e-11</code></pre>
 </section>
 <section id="assumption-2---the-residuals-in-your-model-should-be-normally-distributed" class="level4" data-number="4.3.2.2">
 <h4 data-number="4.3.2.2" class="anchored" data-anchor-id="assumption-2---the-residuals-in-your-model-should-be-normally-distributed"><span class="header-section-number">4.3.2.2</span> Assumption 2 - the residuals in your model should be normally distributed</h4>
-<p>This assumption is easy to check. When we ran our model1 earlier, one of the outputs stored in our model 1 object is the residual value for each case (authority) in your dataset. We can access these values using <code>augment()</code> from <code>broom</code> which will add model output to the original data…</p>
+<p>This assumption is easy to check. When we ran our <code>model1</code> earlier, one of the outputs stored in our <code>model1</code> object is the residual value for each case (authority) in your dataset. We can access these values using <code>augment()</code> from <code>broom</code> which will add model output to the original data…</p>
 <p>We can plot these as a histogram and see if there is a normal distribution:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
@@ -799,7 +799,7 @@ F-statistic: 61.86 on 2 and 65 DF,  p-value: 9.037e-16</code></pre>
 <pre><code># A tibble: 1 × 5
   statistic p.value autocorrelation method             alternative
       &lt;dbl&gt;   &lt;dbl&gt;           &lt;dbl&gt; &lt;chr&gt;              &lt;chr&gt;      
-1      1.41  0.0100           0.227 Durbin-Watson Test two.sided  </code></pre>
+1      1.41  0.0140           0.227 Durbin-Watson Test two.sided  </code></pre>
 </div>
 </div>
 <p>As you can see, the DW statistics for our model is 1.41, so some indication of autocorrelation, but perhaps nothing to worry about.</p>
@@ -936,7 +936,7 @@ F-statistic: 65.68 on 3 and 62 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <p>This suggests that there could well be some spatial autocorrelation biasing our model, but can we test for spatial autocorrelation more systematically?</p>
-<p>Yes - and some of you will remember this from the practical two weeks ago. We can calculate a number of different statistics to check for spatial autocorrelation - the most common of these being Moran’s I.</p>
+<p>Yes - and some of you will remember this from the practical a few days ago. We can calculate a number of different statistics to check for spatial autocorrelation - the most common of these being Moran’s I.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">#calculate the centroids </span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1035,15 +1035,15 @@ F-statistic: 65.68 on 3 and 62 DF,  p-value: &lt; 2.2e-16</code></pre>
 <h2 data-number="4.4" class="anchored" data-anchor-id="spatial-regression-models"><span class="header-section-number">4.4</span> Spatial regression models</h2>
 <section id="the-spatial-lag-lagged-dependent-variable-model" class="level3" data-number="4.4.1">
 <h3 data-number="4.4.1" class="anchored" data-anchor-id="the-spatial-lag-lagged-dependent-variable-model"><span class="header-section-number">4.4.1</span> The spatial lag (lagged dependent variable) model</h3>
-<p>Rrunning a Moran’s I test on the residuals from the model suggested that there might be some spatial autocorreation occurring suggesting that places where the model over-predicted the percent of people smoking (those shown in blue in the map above with negative residuals) and under-predicted (those shown in red/orange) occasionally were near to each other.</p>
+<p>Running a Moran’s I test on the residuals from the model suggested that there might be some spatial autocorrelation occurring suggesting that places where the model over-predicted the percent of people smoking (those shown in blue in the map above with negative residuals) and under-predicted (those shown in red/orange) occasionally were near to each other.</p>
 <p>Ward and Gleditsch (2008) describe this situation (where the value of our <span class="math inline">\(y\)</span> dependent variable - percent people who smoke - may be influenced by neighbouring values) and suggest the way to deal with it is to incorporate a <em>spatially-lagged</em> version of this variable amongst the independent variables on the right-hand side of the equation. In this case, Equation 1 would be updated to look like this:</p>
 <p><span class="math display">\[y_i = \beta_0 + \beta_1x_i + \rho w_i.y_i + \epsilon_i\]</span></p>
-<p>In this equation, <span class="math inline">\(w\)</span> is the spatial weights matrix you generated and <span class="math inline">\(w_i\)</span> is vector of all neighbouring areas (in our case, Wards) for any Ward <span class="math inline">\(y_i\)</span>. If using binary this will be a sum (e.g.&nbsp;the value of <span class="math inline">\(y\)</span> plotted against the sum of <span class="math inline">\(y\)</span> of the neighbouring wards). This may be explained as a weighted sum as the non-neighbours will be removed, the weight being the neighbours If this is row standardised it will be a weighted average of the neighbouring <span class="math inline">\(y\)</span> values. Typically we use a <strong>row standardised</strong> matrix.</p>
+<p>In this equation, <span class="math inline">\(w\)</span> is the spatial weights matrix you generated and <span class="math inline">\(w_i\)</span> is vector of all neighbouring areas (in our case, Territorial Authority) for any Territorial Authority <span class="math inline">\(y_i\)</span>. If using binary this will be a sum (e.g.&nbsp;the value of <span class="math inline">\(y\)</span> plotted against the sum of <span class="math inline">\(y\)</span> of the neighbouring Territorial Authority). This may be explained as a weighted sum as the non-neighbours will be removed, the weight being the neighbours If this is row standardised it will be a weighted average of the neighbouring <span class="math inline">\(y\)</span> values. Typically we use a <strong>row standardised</strong> matrix.</p>
 <p>In this model, a positive value for the <span class="math inline">\(\rho w_i.y_i\)</span> parameter would indicate that the average value for the percent smoking is expected to be higher if, on average, neighbouring authorities also have a higher percentage of people who smoke.</p>
 <ul>
 <li><span class="math inline">\(\rho\)</span> denotes (represents) the spatial lag</li>
 </ul>
-<p>For more details on running a spatially lagged regression model and interpreting the outputs, see the chapter on spatially lagged models by Ward and Gleditsch (2008) available online here: https://methods.sagepub.com/book/spatial-regression-models/n2.xml</p>
+<p>For more details on running a spatially lagged regression model and interpreting the outputs, see the chapter on spatially lagged models by <a href="https://methods.sagepub.com/book/spatial-regression-models/n2.xml">Ward and Gleditsch (2008) available online</a></p>
 <section id="queens-case-lag" class="level4" data-number="4.4.1.1">
 <h4 data-number="4.4.1.1" class="anchored" data-anchor-id="queens-case-lag"><span class="header-section-number">4.4.1.1</span> Queen’s case lag</h4>
 <p>Now run a spatially-lagged regression model with a queen’s case weights matrix</p>
@@ -1147,7 +1147,7 @@ census_2018_total_personal_income_median_curp_15years_and_over -0.0003407798</co
 <li><p><span class="math inline">\(\xi_i\)</span> is the spatial component of the error terms…in other words the residuals of the values in surrounding spatial units based on the weight matrix. The same rules apply as the lag (e.g.&nbsp;binary = sum, row standardisied = weighted average).</p></li>
 <li><p><span class="math inline">\(\lambda\)</span> is a measure of correlation between neighbouring residuals.. “it indicates the extent to which the spatial component of the errors <span class="math inline">\(\xi_i\)</span> are correlated with one another for nearby observations” as per the weight matrix, Ward and Gleditsch (2008). <strong>If there is no correlation between the then this defaults to normal OLS regression</strong></p></li>
 </ul>
-<p>For more detail on the spatial error model, see Ward and Gleditsch (2008) - https://methods.sagepub.com/Book/spatial-regression-models/n3.xml</p>
+<p>For more detail on the spatial error model, <a href="https://methods.sagepub.com/Book/spatial-regression-models/n3.xml">see Ward and Gleditsch (2008)</a></p>
 <p>We can run a spatial error model on the same data below:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>sem_1 <span class="ot">&lt;-</span> <span class="fu">errorsarlm</span>(percent_regular_smoker <span class="sc">~</span></span>
@@ -1185,10 +1185,10 @@ census_2018_total_personal_income_median_curp_15years_and_over -0.0003407798</co
 <section id="gwr" class="level2" data-number="4.5">
 <h2 data-number="4.5" class="anchored" data-anchor-id="gwr"><span class="header-section-number">4.5</span> GWR</h2>
 <p>Rather than spatial autocorrelation causing problems with our model, it might be that a “global” regression model does not capture the full story. In some parts of our study area, the relationships between the dependent and independent variable may not exhibit the same slope coefficient.</p>
-<p>If this occurs, then we have ‘non-stationarity’ - this is when the global model does not represent the relationships between variables that might vary locally.</p>
+<p>If this occurs, then we have <strong><em>’non-stationarity</em></strong>’ - this is when the global model does not represent the relationships between variables that might vary locally.</p>
 <section id="bandwidth" class="level3" data-number="4.5.1">
 <h3 data-number="4.5.1" class="anchored" data-anchor-id="bandwidth"><span class="header-section-number">4.5.1</span> Bandwidth</h3>
-<p>This part of the practical will only skirt the edges of GWR, for much more detail you should visit the GWR website which is produced and maintained by Prof Chris Brunsdon and Dr Martin Charlton who originally developed the technique - http://gwr.nuim.ie/</p>
+<p>This part of the practical will only skirt the edges of GWR, for much more detail you should visit the <a href="http://gwr.nuim.ie/">GWR website</a> which is produced and maintained by Prof Chris Brunsdon and Dr Martin Charlton who originally developed the technique.</p>
 <p>I should also acknowledge <a href="http://www.bris.ac.uk/cmpo/events/2009/segregation/gwr.pdf">the guide on GWR produced by the University of Bristol</a>, which was a great help when producing this exercise.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spgwr)</span>
@@ -1235,7 +1235,7 @@ Adaptive q: 0.1060531 CV score: 201.6499 </code></pre>
 <p>This approach uses cross validation to search for the optimal bandwidth, it compares different bandwidths to minimise model residuals — this is why we specify the regression model within <code>gwr.sel()</code>. It does this with a Gaussian weighting scheme (which is the default) - meaning that near points have greater influence in the regression and the influence decreases with distance - there are variations of this, but Gaussian is a fine to use in most applications. To change this we would set the argument <code>gweight = gwr.Gauss</code> in the <code>gwr.sel()</code> function — <code>gwr.bisquare()</code> is the other option. We don’t go into cross validation in this module.</p>
 <p><strong>However</strong> we could set either the number of neighbours considered or the distance within which to considered points ourselves, manually, in the <code>gwr()</code> function below.</p>
 <p>To set the number of other neighbours considered simply change the <code>adapt</code> argument to the value you want - it must be the number of neighbours divided by the total (e.g.&nbsp;to consider 20 neighbours it would be 20/66 and you’d use the value of 0.30)</p>
-<p>The set the bandwidth, <strong>remove</strong> the <code>adapt</code> argument and replace it with <code>bandwidth</code> and set it, in this case, in meters.</p>
+<p>To set the bandwidth, <strong>remove</strong> the <code>adapt</code> argument and replace it with <code>bandwidth</code> and set it, in this case, in meters.</p>
 <p>To conclude, we can:</p>
 <ul>
 <li>set the bandwidth in <code>gwr.sel()</code> automatically using:
@@ -1259,7 +1259,7 @@ Tip
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>BUT</strong> a problem with setting a fixed bandwidth is we assume that all variables have the same relationship across <strong>the same space (using the same number of neighbours or distance)</strong>…(such as rate_of_job_seekers_allowance_jsa_claimants_2015 and percent_with_level_4_qualifications_and_above_2011). We can let these bandwidths vary as some relationships will operate on different spatial scales…this is called <strong>Multiscale GWR</strong> and Lex Comber recently said that all GWR should be Multisacle (oops!). We have already covered a lot here so i won’t go into it. If you are interested Lex has a <a href="https://rpubs.com/lexcomber/INIA_Session7">good tutorial on Multiscale GWR</a></p>
+<p><strong>BUT</strong> a problem with setting a fixed bandwidth is we assume that all variables have the same relationship across <strong>the same space (using the same number of neighbours or distance)</strong>. We can let these bandwidths vary as some relationships will operate on different spatial scales…this is called <strong>Multiscale GWR</strong> and Lex Comber recently said that all GWR should be Multisacle (oops!). We have already covered a lot here so i won’t go into it. If you are interested Lex has a <a href="https://rpubs.com/lexcomber/INIA_Session7">good tutorial on Multiscale GWR</a></p>
 </div>
 </div>
 </section>
@@ -1343,7 +1343,7 @@ Quasi-global R2: 0.9204215 </code></pre>
 <li>number of independent variables</li>
 <li>maximum likelihood estimate of the model (how well the model reproduces the data).</li>
 </ul>
-<p>The lower the value the better the better the model fit is, see <a href="https://www.scribbr.com/statistics/akaike-information-criterion/">scribbr</a>if you want to know more here..although this is enough to get you through most situations.</p>
+<p>The lower the value the better the better the model fit is, see <a href="https://www.scribbr.com/statistics/akaike-information-criterion/">scribbr</a> if you want to know more here..although this is enough to get you through most situations.</p>
 <p>Coefficient ranges can also be seen for the other variables and they suggest some interesting spatial patterning.</p>
 </section>
 <section id="map-coefficients" class="level3" data-number="4.5.3">
@@ -1442,8 +1442,8 @@ Quasi-global R2: 0.9204215 </code></pre>
 </section>
 <section id="including-spatial-features" class="level2" data-number="4.6">
 <h2 data-number="4.6" class="anchored" data-anchor-id="including-spatial-features"><span class="header-section-number">4.6</span> Including spatial features</h2>
-<p>I mentioned at the start we could also try and include some spatial features within our model - for example the density of shops that sell tobacco? In a sense this is similar to what is termed a <strong>spatially omitted covariate</strong>… typically this means that the nearer something is the more influence it might have on our model.</p>
-<p>However, we could only really calculate distance to tobacco shops from the centroid of the territorial authority - which is a possible variable. But instead we could use density of shops per territorial authority!</p>
+<p>I mentioned at the start we could also try and include some spatial features within our model - for example the density of shops that sell tobacco? In a sense this is similar to what is termed a <strong>spatially omitted covariate</strong>… typically this means that the nearer something is the more influence it might have on our model (e.g.&nbsp;parks and house prices?).</p>
+<p>However, we could only really calculate distance to tobacco shops from the centroid of the territorial authority as a new independent variable. But instead we could use density of shops per territorial authority!</p>
 <p>Here, i will use open street map to calculate a density. I have downloaded the data from <a href="https://download.geofabrik.de/australia-oceania/new-zealand.html">Geofabrik</a></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>osm_pois <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"prac4_data/new-zealand-latest-free.shp/gis_osm_pois_a_free_1.shp"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1462,7 +1462,7 @@ Geodetic CRS:  WGS 84</code></pre>
 <span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(., <span class="dv">2135</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now let’s intersect with the territorial authority boundaries and calculate a density.</p>
-<p><strong>Note</strong> that the districts object is in the correct CRS, however i beleive this is due to naming differences so we will transform it just incase.</p>
+<p><strong>Note</strong> that the <code>districts</code> object is in the correct CRS, however i beleive this is due to naming differences so we will transform it just incase.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>ta <span class="ot">&lt;-</span> ta <span class="sc">%&gt;%</span></span>
 <span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">st_transform</span>(., <span class="dv">2135</span>)</span>

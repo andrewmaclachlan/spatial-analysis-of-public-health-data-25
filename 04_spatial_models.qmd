@@ -47,7 +47,7 @@ census <- read_csv("prac4_data/SA1_census/Individual_part2_totalNZ-wide_format_u
 
 ### Wrangle
 
-The `.csv` we have loaded contains all the data from the week 1 excel homework in a wide format - that means all the SA1s, SA2s and so are are a new row making a huge data file. Normally i would suggest a cool data sciency way to pull out our Territorial Authorities, however i can't see anything that would work. For example, we could try and detect part of a string like "City" or "District" however they appear in other geographies.
+The `.csv` we have loaded contains all the data from the week 1 excel homework in a wide format - that means all the SA1s, SA2s etc are are a new row making a huge data file. Normally i would suggest a cool data sci-ency way to pull out our Territorial Authorities, however i can't see anything that would work. For example, we could try and detect part of a string like "City" or "District" but they appear in other geographies.
 
 So, until i can think or a better way we are resigned to subsetting by rows!
 
@@ -78,7 +78,7 @@ that will be modeled by:
 -   no qualification, [see the New Zealand gov careers website for what qualification levels mean](https://www.careers.govt.nz/articles/ncea-compared-with-school-c-and-bursary/#cID_8307)
 -   we'll also try and include some spatial data (e.g. density of tobacco shops) at the very end...
 
-However, because we are using spatial units and they may differ in size we should normalise our count data (everything but median income which is continous).
+Because we are using spatial units and they may differ in size we should normalise our count data (everything but median income which is continous).
 
 To do so i will use the "total" column for each variable, although you could also use [population count](https://www.stats.govt.nz/information-releases/2018-census-population-and-dwelling-counts#:~:text=The%202018%20Census%20usually%20resident,and%202013%20(0.7%20percent).)
 
@@ -274,7 +274,7 @@ Typically if you do a power transformation you can keep the direction of the rel
 
 #### Assumption 2 - the residuals in your model should be normally distributed
 
-This assumption is easy to check. When we ran our model1 earlier, one of the outputs stored in our model 1 object is the residual value for each case (authority) in your dataset. We can access these values using `augment()` from `broom` which will add model output to the original data...
+This assumption is easy to check. When we ran our `model1` earlier, one of the outputs stored in our `model1` object is the residual value for each case (authority) in your dataset. We can access these values using `augment()` from `broom` which will add model output to the original data...
 
 We can plot these as a histogram and see if there is a normal distribution:
 
@@ -496,7 +496,7 @@ tm_shape(ta_model3_data) +
 
 This suggests that there could well be some spatial autocorrelation biasing our model, but can we test for spatial autocorrelation more systematically?
 
-Yes - and some of you will remember this from the practical two weeks ago. We can calculate a number of different statistics to check for spatial autocorrelation - the most common of these being Moran’s I.
+Yes - and some of you will remember this from the practical a few days ago. We can calculate a number of different statistics to check for spatial autocorrelation - the most common of these being Moran’s I.
 
 ```{r warning=FALSE, message=FALSE}
 #calculate the centroids 
@@ -578,19 +578,19 @@ This means that despite passing most of the assumptions of linear regression, we
 
 ### The spatial lag (lagged dependent variable) model
 
-Rrunning a Moran's I test on the residuals from the model suggested that there might be some spatial autocorreation occurring suggesting that places where the model over-predicted the percent of people smoking (those shown in blue in the map above with negative residuals) and under-predicted (those shown in red/orange) occasionally were near to each other.
+Running a Moran's I test on the residuals from the model suggested that there might be some spatial autocorrelation occurring suggesting that places where the model over-predicted the percent of people smoking (those shown in blue in the map above with negative residuals) and under-predicted (those shown in red/orange) occasionally were near to each other.
 
 Ward and Gleditsch (2008) describe this situation (where the value of our $y$ dependent variable - percent people who smoke - may be influenced by neighbouring values) and suggest the way to deal with it is to incorporate a *spatially-lagged* version of this variable amongst the independent variables on the right-hand side of the equation. In this case, Equation 1 would be updated to look like this:
 
 $$y_i = \beta_0 + \beta_1x_i + \rho w_i.y_i + \epsilon_i$$
 
-In this equation, $w$ is the spatial weights matrix you generated and $w_i$ is vector of all neighbouring areas (in our case, Wards) for any Ward $y_i$. If using binary this will be a sum (e.g. the value of $y$ plotted against the sum of $y$ of the neighbouring wards). This may be explained as a weighted sum as the non-neighbours will be removed, the weight being the neighbours If this is row standardised it will be a weighted average of the neighbouring $y$ values. Typically we use a **row standardised** matrix.
+In this equation, $w$ is the spatial weights matrix you generated and $w_i$ is vector of all neighbouring areas (in our case, Territorial Authority) for any Territorial Authority $y_i$. If using binary this will be a sum (e.g. the value of $y$ plotted against the sum of $y$ of the neighbouring Territorial Authority). This may be explained as a weighted sum as the non-neighbours will be removed, the weight being the neighbours If this is row standardised it will be a weighted average of the neighbouring $y$ values. Typically we use a **row standardised** matrix.
 
 In this model, a positive value for the $\rho w_i.y_i$ parameter would indicate that the average value for the percent smoking is expected to be higher if, on average, neighbouring authorities also have a higher percentage of people who smoke.
 
 -   $\rho$ denotes (represents) the spatial lag
 
-For more details on running a spatially lagged regression model and interpreting the outputs, see the chapter on spatially lagged models by Ward and Gleditsch (2008) available online here: https://methods.sagepub.com/book/spatial-regression-models/n2.xml
+For more details on running a spatially lagged regression model and interpreting the outputs, see the chapter on spatially lagged models by [Ward and Gleditsch (2008) available online](https://methods.sagepub.com/book/spatial-regression-models/n2.xml)
 
 #### Queen's case lag
 
@@ -677,7 +677,7 @@ where
 
 -   $\lambda$ is a measure of correlation between neighbouring residuals.. "it indicates the extent to which the spatial component of the errors $\xi_i$ are correlated with one another for nearby observations" as per the weight matrix, Ward and Gleditsch (2008). **If there is no correlation between the then this defaults to normal OLS regression**
 
-For more detail on the spatial error model, see Ward and Gleditsch (2008) - https://methods.sagepub.com/Book/spatial-regression-models/n3.xml
+For more detail on the spatial error model, [see Ward and Gleditsch (2008)]( https://methods.sagepub.com/Book/spatial-regression-models/n3.xml)
 
 We can run a spatial error model on the same data below:
 
@@ -712,11 +712,11 @@ The **error** model deals with spatial autocorrelation (closer spatial units hav
 
 Rather than spatial autocorrelation causing problems with our model, it might be that a “global” regression model does not capture the full story. In some parts of our study area, the relationships between the dependent and independent variable may not exhibit the same slope coefficient.
 
-If this occurs, then we have ‘non-stationarity’ - this is when the global model does not represent the relationships between variables that might vary locally.
+If this occurs, then we have ***‘non-stationarity***’ - this is when the global model does not represent the relationships between variables that might vary locally.
 
 ### Bandwidth
 
-This part of the practical will only skirt the edges of GWR, for much more detail you should visit the GWR website which is produced and maintained by Prof Chris Brunsdon and Dr Martin Charlton who originally developed the technique - http://gwr.nuim.ie/
+This part of the practical will only skirt the edges of GWR, for much more detail you should visit the [GWR website](http://gwr.nuim.ie/) which is produced and maintained by Prof Chris Brunsdon and Dr Martin Charlton who originally developed the technique.
 
 I should also acknowledge [the guide on GWR produced by the University of Bristol](http://www.bris.ac.uk/cmpo/events/2009/segregation/gwr.pdf), which was a great help when producing this exercise.
 
@@ -749,7 +749,7 @@ This approach uses cross validation to search for the optimal bandwidth, it comp
 
 To set the number of other neighbours considered simply change the `adapt` argument to the value you want - it must be the number of neighbours divided by the total (e.g. to consider 20 neighbours it would be 20/66 and you'd use the value of 0.30)
 
-The set the bandwidth, **remove** the `adapt` argument and replace it with `bandwidth` and set it, in this case, in meters.
+To set the bandwidth, **remove** the `adapt` argument and replace it with `bandwidth` and set it, in this case, in meters.
 
 To conclude, we can:
 
@@ -761,7 +761,7 @@ To conclude, we can:
     -   a distance threshold
 
 ::: callout-tip
-**BUT** a problem with setting a fixed bandwidth is we assume that all variables have the same relationship across **the same space (using the same number of neighbours or distance)**...(such as rate_of_job_seekers_allowance_jsa_claimants_2015 and percent_with_level_4_qualifications_and_above_2011). We can let these bandwidths vary as some relationships will operate on different spatial scales...this is called **Multiscale GWR** and Lex Comber recently said that all GWR should be Multisacle (oops!). We have already covered a lot here so i won't go into it. If you are interested Lex has a [good tutorial on Multiscale GWR](https://rpubs.com/lexcomber/INIA_Session7)
+**BUT** a problem with setting a fixed bandwidth is we assume that all variables have the same relationship across **the same space (using the same number of neighbours or distance)**. We can let these bandwidths vary as some relationships will operate on different spatial scales...this is called **Multiscale GWR** and Lex Comber recently said that all GWR should be Multisacle (oops!). We have already covered a lot here so i won't go into it. If you are interested Lex has a [good tutorial on Multiscale GWR](https://rpubs.com/lexcomber/INIA_Session7)
 :::
 
 ### Model
@@ -795,7 +795,7 @@ AIC is calculated using the:
 -   number of independent variables
 -   maximum likelihood estimate of the model (how well the model reproduces the data).
 
-The lower the value the better the better the model fit is, see [scribbr](https://www.scribbr.com/statistics/akaike-information-criterion/)if you want to know more here..although this is enough to get you through most situations.
+The lower the value the better the better the model fit is, see [scribbr](https://www.scribbr.com/statistics/akaike-information-criterion/) if you want to know more here..although this is enough to get you through most situations.
 
 Coefficient ranges can also be seen for the other variables and they suggest some interesting spatial patterning.
 
@@ -868,9 +868,9 @@ You can be confident that in your sample, nearly all of the time, that is a real
 
 ## Including spatial features
 
-I mentioned at the start we could also try and include some spatial features within our model - for example the density of shops that sell tobacco? In a sense this is similar to what is termed a **spatially omitted covariate**... typically this means that the nearer something is the more influence it might have on our model.
+I mentioned at the start we could also try and include some spatial features within our model - for example the density of shops that sell tobacco? In a sense this is similar to what is termed a **spatially omitted covariate**... typically this means that the nearer something is the more influence it might have on our model (e.g. parks and house prices?).
 
-However, we could only really calculate distance to tobacco shops from the centroid of the territorial authority - which is a possible variable. But instead we could use density of shops per territorial authority!
+However, we could only really calculate distance to tobacco shops from the centroid of the territorial authority as a new independent variable. But instead we could use density of shops per territorial authority!
 
 Here, i will use open street map to calculate a density. I have downloaded the data from [Geofabrik](https://download.geofabrik.de/australia-oceania/new-zealand.html)
 
@@ -884,7 +884,7 @@ osm_pois_filter <- osm_pois %>%
 
 Now let's intersect with the territorial authority boundaries and calculate a density.
 
-**Note** that the districts object is in the correct CRS, however i beleive this is due to naming differences so we will transform it just incase.
+**Note** that the `districts` object is in the correct CRS, however i beleive this is due to naming differences so we will transform it just incase.
 
 ```{r}
 ta <- ta %>%
