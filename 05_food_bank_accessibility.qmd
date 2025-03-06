@@ -1,3 +1,1444 @@
 # Food bank accessibility 
 
-LS to add
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+```
+
+::: callout-note
+**Aim: Identify areas (in and around Oxford/shire) with low access and high demand for food banks**
+
+  - Convert food bank addresses to point locations
+  - Create maps/visualisations of locations of food banks (in the UK and Oxfordshire)
+  - Calculate accessibility for walking, driving, and public transport using r5r package
+  - Identify areas with low accessibility to food banks, but a perceived high need (based on a couple of factors)
+:::
+
+::: callout-note
+**Optional reading**
+
+- Pereira, R. et al., [r5r: Rapid Realistic Routing on Multimodal Transport Networks with R5 in R (2021)](https://doi.org/10.32866/001c.21262)
+- Allen, J. and Farber, S. [Changes in transit accessibility to food banks in Toronto during Covid-19 (2021)](https://doi.org/10.32866/001c.24072)
+- Higgins, C.D. et al. [Changes in accessibility to emergency and community food services during Covid-19 and implications for low income populations in Hamilton, Ontario (2021)](https://pubmed.ncbi.nlm.nih.gov/34655939/)
+:::
+
+### Convert food bank addresses to point locations
+
+Firstly, load the R packages needed for the practical. You may need to install some of these for the first time. 
+
+```{r packages}
+#Load relevant packages
+library(dplyr)
+library(tidyverse)
+library(janitor)
+library(RColorBrewer)
+library(ggplot2) #for graphs
+library(tmap) #for maps
+library(tmaptools) #for maps
+library(leaflet) #for maps
+library(reader)
+library(readxl)
+library(data.table)
+library(knitr)
+library(sp)
+library(sf)
+library(spdep)
+library(spatstat)
+library(PostcodesioR) #for postcode lat and long
+library(mosaic) #for favstats function
+library(geodist) #for distances
+library(rje) #for row mins
+library(osmdata) #for osm
+library(osmextract) # for osm
+library(osrm) #for osm
+library(r5r) #for public transport
+library(tidygeocoder)
+library(tidytransit) #for public transport
+```
+
+### Load the spatial data 
+
+We need to load the spatial data for different spatial scales. This polygons data will be used for creating maps and calculating accessibility to food banks centres. These were downloaded from the [Open Geography Portal](https://geoportal.statistics.gov.uk) (from the Office for National Statistics). 
+
++ Lower super output area (LSOA) scale 
++ Local authority scale
++ Entire country scale
+
+There are 35,672 LSOAs (for England and Wales)
+
+```{r load LSOAs}
+#2021 shape file for LSOAs
+LSOA_2021 <- st_read("LSOA_2021/LSOA_(Dec_2021)_Boundaries_Generalised_Clipped_EW_(BGC).shp") %>%
+  st_transform(., 27700) %>%
+  clean_names() 
+```
+
+There are 374 local authorities (for the UK)
+
+```{r load Local Authority districts}
+#2022 shape file for LAs
+LA_2022 <- st_read("LA_2022/LAD_MAY_2022_UK_BFE_V3.shp") %>%
+  st_transform(., 27700) %>%
+  clean_names() 
+```
+
+```{r load country borders}
+#2023 shape file for UK
+UK_border <- st_read("UK_2023/CTRY_DEC_2023_UK_BUC.shp") %>%
+  st_transform(., 27700) %>%
+  clean_names() 
+```
+
+### Data on Trussell food bank centres
+
+Next, we load the Trussell food bank data with addresses (this data was provided by Trussell in February 2023 so some centres may have closed in the last two years or new centres may have opened).
+
+```{r locations of Trussell food banks}
+#locations of food banks from TT
+TT_foodbanks <- read_excel("Food banks Feb23.xlsx") %>%
+  clean_names()
+```
+
+In order to derive point locations from postcodes, we need to clean the food bank postcodes so they are in a uniform and readable form. At this stage, we also remove food bank centres that are not currently open or are warehouses or offices (where people cannot collect food from).
+
+```{r clean postcodes and remove certain records}
+#removing white space from postcodes
+TT_foodbanks$postcode <- gsub("[[:space:]]", "", TT_foodbanks$postcode)
+
+#filter out only distribution centres
+TT_foodbanks <- TT_foodbanks %>%
+  filter(type == "Distribution Centre") %>% #only want distribution centres and not warehouses or offices
+  filter(operating_model != "Temporarily Closed") #remove centres that are currently closed
+```
+
+Next, we derive the point locations from postcodes. Unfortunately, the approach below only allows 100 locations at a time to be converted.
+
+```{r locations of TT food banks 1, include = TRUE}
+TT_foodbanks1 <- TT_foodbanks[1:100, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks1$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points1 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points1 <- 
+  st_as_sf(TT_foodbank_location_points1,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 2, include = TRUE}
+TT_foodbanks2 <- TT_foodbanks[101:200, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks2$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points2 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points2 <- 
+  st_as_sf(TT_foodbank_location_points2,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 3, include = TRUE}
+TT_foodbanks3 <- TT_foodbanks[201:300, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks3$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points3 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points3 <- 
+  st_as_sf(TT_foodbank_location_points3,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 4, include = TRUE}
+TT_foodbanks4 <- TT_foodbanks[301:400, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks4$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points4 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points4 <- 
+  st_as_sf(TT_foodbank_location_points4,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 5, include=TRUE}
+TT_foodbanks5 <- TT_foodbanks[401:500, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks5$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points5 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points5 <- 
+  st_as_sf(TT_foodbank_location_points5,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 6, include=TRUE}
+TT_foodbanks6 <- TT_foodbanks[501:600, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks1$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points6 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points6 <- 
+  st_as_sf(TT_foodbank_location_points6,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 7, include=TRUE}
+TT_foodbanks7 <- TT_foodbanks[601:700, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks7$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points7 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points7 <- 
+  st_as_sf(TT_foodbank_location_points7,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 8, include=TRUE}
+TT_foodbanks8 <- TT_foodbanks[701:800, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks8$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points8 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points8 <- 
+  st_as_sf(TT_foodbank_location_points8,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 9, include=TRUE}
+TT_foodbanks9 <- TT_foodbanks[801:900, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks9$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points9 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points9 <- 
+  st_as_sf(TT_foodbank_location_points9,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 10, include=TRUE}
+TT_foodbanks10 <- TT_foodbanks[901:1000, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks10$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points10 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points10 <- 
+  st_as_sf(TT_foodbank_location_points10,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 11, include=TRUE}
+TT_foodbanks11 <- TT_foodbanks[1001:1100, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks11$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points11 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points11 <- 
+  st_as_sf(TT_foodbank_location_points11,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 12, include=TRUE}
+TT_foodbanks12 <- TT_foodbanks[1101:1200, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks12$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points12 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points12 <- 
+  st_as_sf(TT_foodbank_location_points12,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 13, include=TRUE}
+TT_foodbanks13 <- TT_foodbanks[1201:1300, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks13$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points13 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points13 <- 
+  st_as_sf(TT_foodbank_location_points13,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 14, include=TRUE}
+TT_foodbanks14 <- TT_foodbanks[1301:1400, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks14$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points14 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points14 <- 
+  st_as_sf(TT_foodbank_location_points14,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r locations of TT food banks 15, include=TRUE}
+TT_foodbanks15 <- TT_foodbanks[1401:1425, ]
+
+#make postcodes into a list
+list <- as.list(unique(TT_foodbanks15$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+TT_foodbank_location_points15 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+TT_foodbank_location_points15 <- 
+  st_as_sf(TT_foodbank_location_points15,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+After all the Trussell centres have had their point location derived, we bind them together in one data frame.
+
+```{r bind all food bank locations together}
+TT_foodbank_location_points <- rbind(TT_foodbank_location_points1, TT_foodbank_location_points2,
+                                     TT_foodbank_location_points3, TT_foodbank_location_points4, 
+                                     TT_foodbank_location_points5, TT_foodbank_location_points6,
+                                     TT_foodbank_location_points7, TT_foodbank_location_points8,
+                                     TT_foodbank_location_points9, TT_foodbank_location_points10,
+                                     TT_foodbank_location_points11, TT_foodbank_location_points12,
+                                     TT_foodbank_location_points13, TT_foodbank_location_points14,
+                                     TT_foodbank_location_points15)
+```
+
+```{r how many food bank centres have been lost?}
+nrow(TT_foodbanks) - nrow(TT_foodbank_location_points)
+```
+
+This process has lost 42 food bank centres as postcode could not be recognised/matched with a longitude and latitude. 
+
+We need to join the point location to the other information on the food bank centres like the centre's name and the operating model etc. 
+
+```{r editing Trussell location df}
+#removing white space from postcodes in order to merge with more information
+TT_foodbank_location_points$postcode <- gsub("[[:space:]]", "", TT_foodbank_location_points$postcode)
+
+#joining point data with other information on food bank centres e.g. name and operating model
+TT_foodbank_location_points <- TT_foodbank_location_points %>%
+  merge(.,
+        TT_foodbanks, 
+        by.x = "postcode",
+        by.y = "postcode",
+        all.x = TRUE)
+
+#select specific columns
+TT_foodbank_location_points <- TT_foodbank_location_points %>%
+  distinct(foodbank_centre_number, postcode, .keep_all = TRUE) %>%
+  dplyr::select(food_bank_name, distribution_centre_name, foodbank_centre_number, postcode, operating_model, number_of_distribution_centres_final)
+```
+
+### Create a map of Trussell food bank locations in the UK
+
+Now we have the point location of Trussell centres, we can use the tmap package to visualise *where* the Trussell food bank centres are across the UK by making a simple map. 
+
+```{r where are the food banks?}
+TT_foodbank_location_points <- TT_foodbank_location_points %>%
+  st_transform(., 27700) 
+
+#clips the point locations to be only within the shape file area - excludes food banks outside the boundary
+TT_foodbank_location_points <- TT_foodbank_location_points[UK_border,] 
+
+#plot map
+Plain_map <- 
+  tm_shape(UK_border) +
+  tm_fill(col = "antiquewhite", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(TT_foodbank_location_points) +
+  tm_symbols(col = "forestgreen", size = 0.03) +
+  tm_scale_bar(position = c("left", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+  tm_layout(main.title = "Trussell food bank centres", 
+            main.title.position = "centre",
+            main.title.size = 0.7, 
+            legend.outside = TRUE, frame = FALSE)
+
+Plain_map
+```
+
+::: callout-note
+**Questions**
+
+- What does this tell up about the spatial distribution of food banks?
+- What could be added to this map to enhance the visualisation?
+:::
+
+### Create a map of Trussell food bank locations in Oxford and Oxfordshire
+
+Let's zoom in on Oxford and the surrounding area.
+
+```{r filter LAs for Oxford and Oxfordshire}
+#use string detect function to find local authorities with these words in their names
+Oxford_LAs <- LA_2022 %>%
+  filter(str_detect(lad22nm, "Oxford") | 
+           str_detect(lad22nm, "White Horse") | 
+           str_detect(lad22nm, "Cherwell")) 
+```
+
+```{r filter LAs for Oxford}
+#use string detect function to isolate the border of the city of Oxford
+Oxford_City_LAs <- LA_2022 %>%
+  filter(str_detect(lad22cd, "E07000178")) 
+```
+
+```{r map of Trussell food bank centres in Oxfordshire}
+#find food bank centres from within the border we have created
+Oxford_TT_foodbanks <- TT_foodbank_location_points[Oxford_LAs,] 
+
+Oxford_map <- 
+  tm_shape(Oxford_LAs) +
+  tm_fill(col = "antiquewhite", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(Oxford_City_LAs) +
+  tm_borders(col = "black", lwd = 1) + #bolder border around the City of Oxford
+  tm_shape(Oxford_TT_foodbanks) +
+  tm_symbols(col = "deepskyblue", size = 0.1) +
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+  tm_layout(main.title = "Trussell centres in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9, 
+            legend.outside = TRUE, frame = FALSE)
+
+Oxford_map
+```
+
+```{r interactive map of Trussell food banks in Oxfordshire}
+tmap_mode("view")
+
+#plot map
+Oxford_map <- 
+  tm_shape(Oxford_LAs) +
+  tm_fill(col = "antiquewhite", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(Oxford_City_LAs) +
+  tm_borders(col = "black", lwd = 1) + #bolder border around the City of Oxford
+  tm_shape(Oxford_TT_foodbanks) +
+  tm_symbols(col = "deepskyblue", size = 0.1) +
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+    tm_layout(main.title = "Trussell centres in/around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9, 
+            legend.outside = TRUE, frame = FALSE)
+
+Oxford_map
+```
+
+We see only seven food bank centres across the region, and no food bank centres in the City of Oxford itself, so we look at other sources of data to see if this is true.
+
+#### Give Food food bank data
+
+Give Food is an open access database with information on food banks in the UK. Next, load the food bank data with addresses (from [Give Food](https://github.com/givefood/data)). However, these are food banks and not distribution centres. 
+
+```{r locations of food banks (not centres)}
+#data from give food
+give_food_foodbanks <- read_csv("foodbanks.csv") %>%
+  clean_names()
+```
+
+```{r clean postcodes and remove certain records for give food}
+#removing white space from postcodes
+give_food_foodbanks$postcode <- gsub("[[:space:]]", "", give_food_foodbanks$postcode)
+
+#filter out only distribution centres
+give_food_foodbanks <- give_food_foodbanks %>%
+  filter(closed != "TRUE") #remove centres that are currently closed
+```
+
+```{r detect centres in Oxford and Oxfordshire}
+#create 2 versions
+Oxford_give_food_foodbanks <- give_food_foodbanks %>%
+  filter(str_detect(postcode, "OX")) 
+
+Oxford_give_food_foodbanks2 <- give_food_foodbanks %>%
+  filter(str_detect(postcode, "OX")) 
+```
+
+```{r locations of give food food banks, echo=FALSE, include=FALSE}
+#make postcodes into a list
+list <- as.list(unique(Oxford_give_food_foodbanks2$postcode))
+
+#foodbank locations
+#lat and long from postcodes
+pc_list <- list(postcodes = list)
+bulk_lookup_result <- bulk_postcode_lookup(pc_list)
+str(bulk_lookup_result[1])
+
+#postcode look up
+bulk_list <- lapply(bulk_lookup_result, "[[", 2)
+
+Oxford_give_food_foodbanks2 <-
+  map_dfr(bulk_list,
+          `[`,
+          c("postcode", "longitude", "latitude"))
+
+#as spatial points
+Oxford_give_food_foodbanks2 <- 
+  st_as_sf(Oxford_give_food_foodbanks2,
+           coords = c("longitude", "latitude"), crs = 4326)
+```
+
+```{r join point data to original df}
+Oxford_give_food_foodbanks2$postcode <- gsub("[[:space:]]", "", Oxford_give_food_foodbanks2$postcode)
+
+#create spatial object
+Oxford_give_food_foodbanks2 <- Oxford_give_food_foodbanks2 %>%
+  st_transform(., 27700) 
+
+#select only specific variables needed
+Oxford_give_food_foodbanks <- Oxford_give_food_foodbanks %>%
+  select(name, postcode, district, network)
+
+Oxford_give_food_foodbanks <- Oxford_give_food_foodbanks2 %>%
+  merge(.,
+        Oxford_give_food_foodbanks, 
+        by.x = "postcode",
+        by.y = "postcode",
+        all.x = TRUE)
+```
+
+```{r map other food banks in Oxfordshire}
+#create spatial object
+Oxford_give_food_foodbanks <- Oxford_give_food_foodbanks %>%
+  st_transform(., 27700) 
+
+tmap_mode("plot")
+
+#plot map
+Oxford_map <- 
+  tm_shape(Oxford_LAs) +
+  tm_fill(col = "antiquewhite", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(Oxford_City_LAs) +
+  tm_borders(col = "black", lwd = 1) + #bolder border around the City of Oxford
+  tm_shape(Oxford_give_food_foodbanks) +
+  tm_symbols(col = "red", size = 0.1) +
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+  tm_layout(main.title = "Other food banks in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9, 
+            legend.outside = TRUE, frame = FALSE)
+
+Oxford_map
+```
+
+```{r interactive map other food banks in Oxfordshire}
+tmap_mode("view")
+
+#plot map
+Oxford_map <- 
+  tm_shape(Oxford_LAs) +
+  tm_fill(col = "antiquewhite", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(Oxford_City_LAs) +
+  tm_borders(col = "black", lwd = 1) + #bolder border around the City of Oxford
+  tm_shape(Oxford_give_food_foodbanks) +
+  tm_symbols(col = "red", size = 0.1) +
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+    tm_layout(main.title = "Other food banks in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9, 
+            legend.outside = TRUE, frame = FALSE)
+
+Oxford_map
+```
+
+If you hover over the food bank centres on the interactive map, information on the centre that is contained in the data frame will pop up in a box.
+
+Next we map the same data, but spilt the centres by network type. 
+
+```{r filter data by food network network and map it}
+trussell_Oxford <- Oxford_give_food_foodbanks %>%
+  filter(network == "Trussell")
+
+IFAN_Oxford <- Oxford_give_food_foodbanks %>%
+  filter(network == "IFAN")
+
+independent_Oxford <- Oxford_give_food_foodbanks %>%
+  filter(network == "Independent")
+
+#change mode from interactive to static
+tmap_mode("plot")
+
+#plot map
+Oxford_map <- 
+  tm_shape(Oxford_LAs) +
+  tm_fill(col = "antiquewhite", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(Oxford_City_LAs) +
+  tm_borders(col = "black", lwd = 1) + #bolder border around the City of Oxford
+  tm_shape(trussell_Oxford) +
+    tm_symbols(col = "purple", size = 0.15) +
+  tm_shape(IFAN_Oxford) +
+    tm_symbols(col = "orange", size = 0.15) +
+  tm_shape(independent_Oxford) +
+    tm_symbols(col = "red", size = 0.15) +
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "Other food banks in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) +
+  tm_add_legend('symbol', 
+	col = c("purple", "orange", "red"),
+	border.col = "black",
+	size = 1,
+	labels = c('Trussell',
+	           'IFAN',
+	           'Independent'))
+
+Oxford_map
+```
+
+Examining this data informs us that there are more food banks in the area than simply Trussell centres. However, before 
+
+```{r map all food banks}
+#change mode from interactive to static
+tmap_mode("plot")
+
+#plot map
+Oxford_map <- 
+  tm_shape(Oxford_LAs) +
+  tm_fill(col = "antiquewhite", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(Oxford_City_LAs) +
+  tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_TT_foodbanks) +
+    tm_symbols(col = "purple", size = 0.15) +
+  tm_shape(trussell_Oxford) +
+    tm_symbols(col = "purple", size = 0.15) +
+  tm_shape(IFAN_Oxford) +
+    tm_symbols(col = "orange", size = 0.15) +
+  tm_shape(independent_Oxford) +
+    tm_symbols(col = "red", size = 0.15) +
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "Other food banks in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) +
+  tm_add_legend('symbol', 
+	col = c("purple", "orange", "red"),
+	border.col = "black",
+	size = 1,
+	labels = c('Trussell',
+	           'IFAN',
+	           'Independent'))
+
+Oxford_map
+```
+
+
+### Calculate accessibility for walking, driving, and public transport using r5r package
+
+r5r is an R package for rapid realistic routing on multi-modal transport networks (walk, bike, public transport and car). 
+
+To use r5r, we will need:
+
+  + A road network data set from OpenStreetMap in .pbf format (mandatory)
+  + A public transport feed in GTFS.zip format (optional)
+  + A raster file of Digital Elevation Model data in .tif format (optional)
+
+Link to R package page: https://ipeagit.github.io/r5r/
+
+#### Centroids from LSOAs
+
+First we need to get the point locations for LSOA centroids for Oxford and the surrounding area. You can also download the population weighted centroids for LSOAs, but we are not using those today. 
+
+Repeat the filtering process for LSOAs like we did for LAs. 
+
+```{r filter LSOAs for Oxford and Oxfordshire}
+Oxford_LSOAs <- LSOA_2021 %>%
+  filter(str_detect(lsoa21nm, "Oxford") | 
+           str_detect(lsoa21nm, "White Horse") | 
+           str_detect(lsoa21nm, "Cherwell")) 
+```
+
+```{r}
+#change mode from interactive to static
+tmap_mode("plot")
+
+#plot map
+Oxford_map_LSOAs <- 
+  tm_shape(Oxford_LSOAs) +
+  tm_fill(col = "white", alpha = 0.5) +
+  tm_borders(col = "black", lwd = 0.1) +
+  tm_shape(Oxford_City_LAs) +
+  tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_TT_foodbanks) +
+    tm_symbols(col = "purple", size = 0.15) +
+  tm_shape(trussell_Oxford) +
+    tm_symbols(col = "purple", size = 0.15) +
+  tm_shape(IFAN_Oxford) +
+    tm_symbols(col = "orange", size = 0.15) +
+  tm_shape(independent_Oxford) +
+    tm_symbols(col = "red", size = 0.15) +
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) + 
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "Food bank centres in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) +
+  tm_add_legend('symbol', 
+	col = c("purple", "orange", "red"),
+	border.col = "black",
+	size = 1,
+	labels = c('Trussell',
+	           'IFAN',
+	           'Independent'))
+
+Oxford_map_LSOAs
+```
+
+By mapping food bank centres are the LSOA scale rather than the LA scale, we can assume that they are usually located in more densely populated areas like towns/villages in the area. 
+
+```{r centroids of LSOAs}
+sf_use_s2(FALSE)
+
+centroids <- st_centroid(Oxford_LSOAs) %>%
+  st_transform(.,4326)
+  
+centroids <- centroids %>%
+  mutate(long = unlist(map(centroids$geometry,1)),
+           lat = unlist(map(centroids$geometry,2)))
+
+centroids$key <- 1
+centroids$geometry <- NULL
+
+centroids <- centroids %>%
+  dplyr::select(lsoa21cd, long, lat, key)
+```
+
+```{r create the origin points - LSOAs}
+# load in origin locations - LSOA centroids
+points_o <- centroids
+points_o$lon <- as.numeric(points_o$long)
+points_o$lat <- as.numeric(points_o$lat)
+points_o$id <- points_o$lsoa21cd
+points_o <- points_o[,c("id","lon","lat")]
+
+#look at the data
+head(points_o,10)
+```
+
+```{r create the destination points - centres}
+Oxford_give_food_foodbanks <- Oxford_give_food_foodbanks %>%
+  sf::st_transform(crs = 4326)
+
+#unlist geometry column
+Oxford_give_food_foodbanks <- Oxford_give_food_foodbanks %>%
+  mutate(longitude = unlist(map(Oxford_give_food_foodbanks$geometry,1)),
+           latitude = unlist(map(Oxford_give_food_foodbanks$geometry,2)))
+
+points_d <- Oxford_give_food_foodbanks
+points_d$lon <- as.numeric(points_d$longitude)
+points_d$lat <- as.numeric(points_d$latitude)
+points_d$id <- points_d$postcode
+points_d <- points_d[,c("id","lon","lat")]
+
+
+#look at the data
+head(points_d,10)
+```
+
+The next code chunk downloads the road network for the area. However, for this practical, it is included in the data provided (as is the timetable data for public transport). 
+
+```{r download road network}
+# load libraries
+#library(r5r)
+#https://download.geofabrik.de/europe.html
+
+#osm_lines = oe_get("Oxfordshire", stringsAsFactors = FALSE, quiet = TRUE)
+#plot(st_geometry(osm_lines))
+
+#EW_url = oe_match("Oxfordshire")
+#oe_download(
+  #file_url = EW_url$url,
+  #file_size = EW_url$file_size,
+  #download_directory = tempdir())
+
+#EW_url[["url"]]
+```
+
+Next we need to set up the r5r core. This sets up the road network and 
+
+```{r}
+# increase Java memory
+options(java.parameters = "-Xmx6G")
+
+# load libraries
+library(r5r)
+
+#path <- system.file("r5r_path", package = "r5r")
+
+r5r_core <- setup_r5(data_path = ".")
+```
+
+For this example, I set the maximum trip duration to 1 hour (60 minutes) and set the departure time at 2pm.
+
+```{r public transport travel times}
+# routing paramaters
+mode <- c("TRANSIT")
+
+max_trip_duration <- 60 # minutes
+
+departure_datetime <- as.POSIXct("01-03-2021 14:00:00", 
+                                 format = "%d-%m-%Y %H:%M:%S",
+                                 tz = "Europe/London")
+
+# estimating the travel time
+TTM_Oxford_PT <- travel_time_matrix(r5r_core,
+                          origins = points_o,
+                          destinations = points_d,
+                          mode = mode,
+                          departure_datetime = departure_datetime,
+                          max_trip_duration = max_trip_duration)
+```
+
+```{r walking travel times}
+# routing paramaters
+mode <- c("WALK")
+
+max_trip_duration <- 60  # minutes
+
+departure_datetime <- as.POSIXct("01-03-2021 14:00:00", 
+                                 format = "%d-%m-%Y %H:%M:%S",
+                                 tz = "Europe/London")
+
+# estimating the travel time
+TTM_Oxford_walk <- travel_time_matrix(r5r_core,
+                          origins = points_o,
+                          destinations = points_d,
+                          mode = mode,
+                          departure_datetime = departure_datetime,
+                          max_trip_duration = max_trip_duration)
+```
+
+```{r driving travel times}
+# routing paramaters
+mode <- c("CAR")
+
+max_trip_duration <- 60  # minutes
+
+departure_datetime <- as.POSIXct("01-03-2021 14:00:00", 
+                                 format = "%d-%m-%Y %H:%M:%S",
+                                 tz = "Europe/London")
+
+# estimating the travel time
+TTM_Oxford_drive <- travel_time_matrix(r5r_core,
+                          origins = points_o,
+                          destinations = points_d,
+                          mode = mode,
+                          departure_datetime = departure_datetime,
+                          max_trip_duration = max_trip_duration)
+```
+
+We now have three modes of transport (measure of access) to food banks in the area - public transport, walking, and driving. As you can see many more LSOAs have access to a food bank centre within a one hour drive, compared to one hour walking or public transport. 
+
+### Getting minimum travel time
+
+Let's start with walking. 
+
+```{r as some pairs have more than on value, lets select the minimum value}
+#select minimum value between pairs 
+TTM_Oxford_walk <- TTM_Oxford_walk %>%
+  group_by(to_id, from_id) %>% 
+  slice(which.min(travel_time_p50))
+
+#check travel times as numeric
+TTM_Oxford_walk$travel_time_p50 <- as.numeric(TTM_Oxford_walk$travel_time_p50)
+```
+
+This removes origin-destination pairs that have two or more values for travel time under one hour
+
+```{r matrix of min times between pairs}
+#pivot wider
+TTM_Oxford_walk <- TTM_Oxford_walk %>%
+  pivot_wider(names_from = to_id, values_from = travel_time_p50)
+
+head(TTM_Oxford_walk)
+```
+
+The number of rows has decreased as not all LSOAs will have accessibility to a centre within one hour. Let's repeat this for driving and public transport. 
+
+```{r cleaning driving data}
+#select minimum value between pairs 
+TTM_Oxford_drive <- TTM_Oxford_drive %>%
+  group_by(to_id, from_id) %>% 
+  slice(which.min(travel_time_p50))
+
+#check travel times as numeric
+TTM_Oxford_drive$travel_time_p50 <- as.numeric(TTM_Oxford_drive$travel_time_p50)
+
+#pivot wider to create a matrix
+TTM_Oxford_drive <- TTM_Oxford_drive %>%
+  pivot_wider(names_from = to_id, values_from = travel_time_p50)
+
+head(TTM_Oxford_drive)
+```
+
+```{r cleaning public transport data}
+#select minimum value between pairs 
+TTM_Oxford_PT <- TTM_Oxford_PT %>%
+  group_by(to_id, from_id) %>% 
+  slice(which.min(travel_time_p50))
+
+#check travel times as numeric
+TTM_Oxford_PT$travel_time_p50 <- as.numeric(TTM_Oxford_PT$travel_time_p50)
+
+#pivot wider to create a matrix
+TTM_Oxford_PT <- TTM_Oxford_PT %>%
+  pivot_wider(names_from = to_id, values_from = travel_time_p50)
+
+head(TTM_Oxford_PT)
+```
+
+Now we have the accessibility data in a usable form that we can join to our Oxford LSOAs data frame, we can calculate mean and minimum travel times for each LSOA for each mode of transport. 
+
+```{r mean and min time from all OD pairs}
+#mean time
+TTM_Oxford_drive$mean_time_drive <- rowMeans(TTM_Oxford_drive[,c(2:15)], na.rm = TRUE)
+
+TTM_Oxford_PT$mean_time_PT <- rowMeans(TTM_Oxford_PT[,c(2:15)], na.rm = TRUE)
+
+TTM_Oxford_walk$mean_time_walk <- rowMeans(TTM_Oxford_walk[,c(2:15)], na.rm = TRUE)
+
+#minimum time
+TTM_Oxford_drive$minimum_time_drive <- apply(TTM_Oxford_drive, 1, FUN=min, na.rm = TRUE)
+
+TTM_Oxford_PT$minimum_time_PT <- apply(TTM_Oxford_PT, 1, FUN=min, na.rm = TRUE)
+
+TTM_Oxford_walk$minimum_time_walk <- apply(TTM_Oxford_walk, 1, FUN=min, na.rm = TRUE)
+```
+
+```{r}
+#change minimum times to numeric
+TTM_Oxford_drive$minimum_time_drive <- as.numeric(TTM_Oxford_drive$minimum_time_drive)
+
+TTM_Oxford_PT$minimum_time_PT <- as.numeric(TTM_Oxford_PT$minimum_time_PT)
+
+TTM_Oxford_walk$minimum_time_walk <- as.numeric(TTM_Oxford_walk$minimum_time_walk)
+```
+
+Now we need to join this to the Oxford LSOAs dataframe and map it. 
+
+```{r rename column and select columns needed}
+#rename to from id columns for joining purposes
+#select only the ID column and mean and minimum times
+
+TTM_Oxford_drive <- TTM_Oxford_drive %>%
+  select(from_id, mean_time_drive, minimum_time_drive) %>%
+  rename(., lsoa21cd = "from_id")
+
+TTM_Oxford_walk <- TTM_Oxford_walk %>%
+  select(from_id, mean_time_walk, minimum_time_walk) %>%
+  rename(., lsoa21cd = "from_id")
+
+TTM_Oxford_PT <- TTM_Oxford_PT %>%
+  select(from_id, mean_time_PT, minimum_time_PT) %>%
+  rename(., lsoa21cd = "from_id")
+
+Oxford_LSOAs <- Oxford_LSOAs %>%
+  left_join(.,
+            TTM_Oxford_drive,
+            by = "lsoa21cd") %>%
+  left_join(.,
+            TTM_Oxford_walk,
+            by = "lsoa21cd") %>%
+  left_join(.,
+            TTM_Oxford_PT,
+            by = "lsoa21cd")
+```
+
+```{r map for min PT travel time, include=TRUE}
+#map for minimum public transport time
+Travel_time_map <-
+  tm_shape(Oxford_LSOAs) +
+  tm_fill(col = "minimum_time_PT", title = "Minimum time to food bank (mins)", style = "cont", n=10, palette = "-Spectral",
+          colorNA = "white", # colour of missing data
+          textNA = "Public transport beyond one hour") +
+    tm_borders(col = "grey", lwd = 0.01) +
+  tm_shape(Oxford_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_City_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) +
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "PT accessibility in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) 
+
+Travel_time_map 
+```
+
+```{r map for min driving time, include=TRUE}
+#map for minimum driving time
+Travel_time_map <-
+  tm_shape(Oxford_LSOAs) +
+  tm_fill(col = "minimum_time_drive", title = "Minimum time to food bank (mins)", style = "cont", n=10, palette = "-Spectral",
+          colorNA = "white", # colour of missing data
+          textNA = "Driving beyond one hour") +
+    tm_borders(col = "grey", lwd = 0.01) +
+  tm_shape(Oxford_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_City_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) +
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "Driving accessibility in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) 
+
+Travel_time_map 
+```
+
+```{r map for min walking time, include=TRUE}
+#map for minimum walking time
+Travel_time_map <-
+  tm_shape(Oxford_LSOAs) +
+  tm_fill(col = "minimum_time_walk", title = "Minimum time to food bank (mins)", style = "cont", n=10, palette = "-Spectral",
+          colorNA = "white", # colour of missing data
+          textNA = "Walking beyond one hour") +
+    tm_borders(col = "grey", lwd = 0.01) +
+  tm_shape(Oxford_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_City_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) +
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "Walking accessibility in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) 
+
+Travel_time_map 
+```
+
+From these three maps it is very clear that areas have unequal access to food bank centres, especially in the rural parts of Oxfordshire. However, do people in these areas of low accessibility need greater access to centres. 
+
+### Examining demand 
+
+In this last section we will examine two determinants of food bank use. Let's take housing tenure (socially rented homes) and disability. This is census data from 2021 at the LSOA scale. 
+
+```{r housing tenure}
+#Type of tenure of housing
+Tenure <- read_csv("Census 2021 data/Tenure.csv") %>%
+  clean_names() %>%
+  separate(lsoa21cd, c('lsoa_code', 'lsoa_name'), sep = ':') %>%
+  mutate(lsoa_name = trimws(lsoa_name)) %>%
+  mutate(lsoa_code = trimws(lsoa_code)) 
+
+#select socially rented variable
+Tenure <- Tenure %>%
+  select(lsoa_code, lsoa_name, social_rented)
+
+#households that are socially rented
+Tenure$social_rented <- as.numeric(Tenure$social_rented)
+favstats(Tenure$social_rented)
+
+#social rented
+ggplot(Tenure,
+       aes(x=social_rented)) + 
+  geom_histogram(aes(y=after_stat(density)), color="black", fill="white") +
+  geom_vline(aes(xintercept=mean(social_rented)),
+            color="blue", linetype="dashed", size=1) +
+ geom_density(alpha=.2, fill="#FF6666")
+```
+
+```{r}
+#Disability under the Equality Act
+Disability <- read_csv("Census 2021 data/Disability.csv") %>%
+  clean_names() %>%
+  separate(lsoa, c('lsoa_code', 'lsoa_name'), sep = ':') %>%
+  mutate(lsoa_name = trimws(lsoa_name)) %>%
+  mutate(lsoa_code = trimws(lsoa_code)) 
+
+#select socially rented variable
+Disability <- Disability %>%
+  select(lsoa_code, lsoa_name, disabled_under_the_equality_act)
+
+#households with 1+ disabled person
+Disability$disabled_under_the_equality_act <- as.numeric(Disability$disabled_under_the_equality_act)
+favstats(Disability$disabled_under_the_equality_act)
+
+#disability
+ggplot(Disability,
+       aes(x=disabled_under_the_equality_act)) + 
+  geom_histogram(aes(y=after_stat(density)), color="black", fill="white") +
+  geom_vline(aes(xintercept=mean(disabled_under_the_equality_act)),
+            color="blue", linetype="dashed", size=1) +
+ geom_density(alpha=.2, fill="#FF6666") 
+```
+
+::: callout-note
+**Question:**
+
+What can we say about the distribution of these two *demand* variables? And how could we customise these histograms to improve the look of them?
+:::
+
+```{r join two demand variables to spatial data for LSOAs}
+#rename lsoa code variable
+Disability <- Disability %>%
+  rename(., "lsoa21cd" = "lsoa_code") %>%
+  rename(., "lsoa21nm" = "lsoa_name")
+
+Tenure <- Tenure %>%
+  rename(., "lsoa21cd" = "lsoa_code") %>%
+  rename(., "lsoa21nm" = "lsoa_name")
+
+#join to Oxford LSOA data frame
+Oxford_LSOAs <- Oxford_LSOAs %>%
+  left_join(.,
+            Disability, 
+            by = "lsoa21cd") %>%
+  left_join(.,
+            Tenure, 
+            by = "lsoa21cd")
+```
+
+Let's make a map of disability (% of households with one or more disabled person living there) and socially rented homes. 
+
+```{r map for disability, echo=FALSE, include=TRUE}
+
+Disability_map <-
+  tm_shape(Oxford_LSOAs) +
+  tm_fill(col = "disabled_under_the_equality_act", title = "Disability (% of HHs)", style = "cont", n=10, palette = "-Spectral",
+          colorNA = "white", # colour of missing data
+          textNA = "Walking beyond one hour") +
+    tm_borders(col = "grey", lwd = 0.01) +
+  tm_shape(Oxford_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_City_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) +
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "Disability in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) 
+
+Disability_map
+```
+
+```{r map for socially rented homes, echo=FALSE, include=TRUE}
+
+Social_rent_map <-
+  tm_shape(Oxford_LSOAs) +
+  tm_fill(col = "social_rented", title = "Socially rented (% of HHs)", style = "cont", n=10, palette = "-Spectral") +
+    tm_borders(col = "grey", lwd = 0.01) +
+  tm_shape(Oxford_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_City_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) +
+  tm_layout(legend.outside = TRUE, frame = FALSE, 
+            main.title = "Social renting in & around Oxford", 
+            main.title.position = "centre",
+            main.title.size = 0.9) 
+
+Social_rent_map
+```
+
+### Identifying under-served areas
+
+Firstly, what are the national averages for disability and social renting across England and Wales?
+
+```{r}
+mean(Tenure$social_rented, na.rm = TRUE)
+
+mean(Disability$disabled_under_the_equality_act, na.rm = TRUE)
+```
+
++ Socially renting - 16.9% of households
++ Disability - 17.7% of households
+
+And what are the Oxford and surrounding area averages?
+
+```{r}
+mean(Oxford_LSOAs$social_rented, na.rm = TRUE)
+
+mean(Oxford_LSOAs$disabled_under_the_equality_act, na.rm = TRUE)
+```
+
++ Socially renting - 14.5% of households
++ Disability - 14.6% of households
+
+They are lower than the national averages. 
+
+Let's take a look for the three travel times too.
+
+```{r}
+mean(Oxford_LSOAs$mean_time_drive, na.rm = TRUE)
+
+mean(Oxford_LSOAs$mean_time_walk, na.rm = TRUE)
+
+mean(Oxford_LSOAs$mean_time_PT, na.rm = TRUE)
+```
+
+Very simply, if we take the areas that are below the area average for social renting and disability and one of the accessibility measures, which places in and around Oxford are under served to food banks based on high demand and lower accessibility?
+
+```{r areas that are underserved}
+#set some parameters to identify which areas are under served
+Oxford_LSOAs <- Oxford_LSOAs %>%
+  mutate(Underserved_areas = case_when
+         (social_rented >= 14.5 & disabled_under_the_equality_act >= 14.6 & mean_time_walk >= 32 ~ "Underserved", 
+        TRUE ~ "Served"))
+```
+
+```{r creating a map of under served areas}
+#creating a buffer around the LSOAs
+buffer <- Oxford_LSOAs %>%
+  filter(Underserved_areas == "Underserved") %>%
+  st_buffer(., 500) %>%
+  st_union()
+
+ Underserved_map <-
+  tm_shape(Oxford_LSOAs) +
+  tm_fill(col = "Underserved_areas", style = "cont", title = "Underserved Areas", palette = "Blues") +
+  tm_borders(col = "grey", lwd = 0.1) +
+  tm_shape(buffer) +
+  tm_polygons(alpha = 0.1) +
+  tm_shape(Oxford_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_shape(Oxford_City_LAs) +
+    tm_borders(col = "black", lwd = 1) + 
+  tm_scale_bar(position = c("right", "top")) + 
+  tm_compass(position = c("right", "top")) +
+  tm_layout(main.title = "Under-served areas to food banks", main.title.position = "centre",
+            legend.outside = TRUE, frame = FALSE, main.title.size = 1) 
+
+Underserved_map
+```
+
+### Summary
+
+We can use accessibility tools and census data to assess where in an area is under-served to particular services.
+
++ How would we improve this analysis?
++ What are the limitations of the data used?
++ How could we improve the visualisations?
+
+
+
+
+
+
