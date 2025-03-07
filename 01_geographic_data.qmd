@@ -304,7 +304,7 @@ LSOAs <- sf::st_read("prac1_data/statistical-gis-boundaries-london/ESRI/LSOA_201
 health <- readr::read_csv("prac1_data/TS037-2021-3-filtered-2024-01-24T17_28_55Z.csv")  
 ```
 
-To check our spatial data let's make a quick map with the thematic maps pacakge (`tmap`) this works on the grammar of graphics (famous from `ggplots`), similar to the grammar of data manipulation (`tidyverse`) it works on a layered approach. Here we specify the dataset and then how we want to style it..In the most basic form...
+To check our spatial data let's make a quick map with the thematic maps package (`tmap`) this works on the grammar of graphics (famous from `ggplots`), similar to the grammar of data manipulation (`tidyverse`) it works on a layered approach. Here we specify the dataset and then how we want to style it..In the most basic form...
 
 ```{r}
 library(tmap)
@@ -395,6 +395,7 @@ library(tidyr)
 joined_data_wide <- joined_data %>%
   as_tibble(.)%>%
   select(lsoa11cd, general_health_6_categories, observation, usualres, hholdres, popden)%>%
+  # move the general health from 1 column to a column for each category
   tidyr::pivot_wider(.,
 #    id_cols=1:8,
     names_from = general_health_6_categories,
