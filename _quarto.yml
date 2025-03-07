@@ -28,7 +28,7 @@ book:
     title: "Spatial analysis of health data"
     style: floating
     reader-mode: true
-  repo-url: https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-24
+  repo-url: https://github.com/andrewmaclachlan/spatial-analysis-of-public-health-data-25
   repo-actions: [edit, issue]  
   favicon: "assets/favicon.ico"	
 
