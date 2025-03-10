@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
 - Higgins, C.D. et al. [Changes in accessibility to emergency and community food services during Covid-19 and implications for low income populations in Hamilton, Ontario (2021)](https://pubmed.ncbi.nlm.nih.gov/34655939/)
 :::
 
-### Convert food bank addresses to point locations
+## Convert food bank addresses to point locations
 
 Firstly, load the R packages needed for the practical. You may need to install some of these for the first time. 
 
@@ -111,6 +111,8 @@ TT_foodbanks <- TT_foodbanks %>%
 ```
 
 Next, we derive the point locations from postcodes. Unfortunately, the approach below only allows 100 locations at a time to be converted.
+
+The function `lapply` used in these code chunks applies a function over a list or vector. We are applying it to a list of postcodes. 
 
 ```{r locations of TT food banks 1, include = TRUE}
 TT_foodbanks1 <- TT_foodbanks[1:100, ]
@@ -576,7 +578,7 @@ Plain_map
 - What could be added to this map to enhance the visualisation?
 :::
 
-### Create a map of Trussell food bank locations in Oxford and Oxfordshire
+## Create a map of Trussell food bank locations in Oxford and Oxfordshire
 
 Let's zoom in on Oxford and the surrounding area.
 
@@ -640,7 +642,7 @@ Oxford_map
 
 We see only seven food bank centres across the region, and no food bank centres in the City of Oxford itself, so we look at other sources of data to see if this is true.
 
-#### Give Food food bank data
+### Give Food food bank data
 
 Give Food is an open access database with information on food banks in the UK. Next, load the food bank data with addresses (from [Give Food](https://github.com/givefood/data)). However, these are food banks and not distribution centres. 
 
@@ -844,8 +846,7 @@ Oxford_map <-
 Oxford_map
 ```
 
-
-### Calculate accessibility for walking, driving, and public transport using r5r package
+## Calculate accessibility for walking, driving, and public transport using r5r package
 
 r5r is an R package for rapid realistic routing on multi-modal transport networks (walk, bike, public transport and car). 
 
@@ -855,9 +856,11 @@ To use r5r, we will need:
   + A public transport feed in GTFS.zip format (optional)
   + A raster file of Digital Elevation Model data in .tif format (optional)
 
-Link to R package page: https://ipeagit.github.io/r5r/
+Link to R package page: https://ipeagit.github.io/r5r/. 
 
-#### Centroids from LSOAs
+Please download the relevant GTFS.zip file for the UK for the public transport timetable data from [Mobility Database](https://mobilitydatabase.org). 
+
+### Centroids from LSOAs
 
 First we need to get the point locations for LSOA centroids for Oxford and the surrounding area. You can also download the population weighted centroids for LSOAs, but we are not using those today. 
 
@@ -870,7 +873,7 @@ Oxford_LSOAs <- LSOA_2021 %>%
            str_detect(lsoa21nm, "Cherwell")) 
 ```
 
-```{r}
+```{r food bank maps for LSOA scale}
 #change mode from interactive to static
 tmap_mode("plot")
 
@@ -1234,7 +1237,7 @@ Travel_time_map
 
 From these three maps it is very clear that areas have unequal access to food bank centres, especially in the rural parts of Oxfordshire. However, do people in these areas of low accessibility need greater access to centres. 
 
-### Examining demand 
+## Examining demand 
 
 In this last section we will examine two determinants of food bank use. Let's take housing tenure (socially rented homes) and disability. This is census data from 2021 at the LSOA scale. 
 
@@ -1263,7 +1266,7 @@ ggplot(Tenure,
  geom_density(alpha=.2, fill="#FF6666")
 ```
 
-```{r}
+```{r disability}
 #Disability under the Equality Act
 Disability <- read_csv("Census 2021 data/Disability.csv") %>%
   clean_names() %>%
@@ -1429,7 +1432,7 @@ buffer <- Oxford_LSOAs %>%
 Underserved_map
 ```
 
-### Summary
+## Quick summary
 
 We can use accessibility tools and census data to assess where in an area is under-served to particular services.
 
