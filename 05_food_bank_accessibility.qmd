@@ -1,29 +1,29 @@
 # Food bank accessibility 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message=FALSE)
 ```
 
 ::: callout-note
 **Aim: Identify areas (in and around Oxford/shire) with low access and high demand for food banks**
 
-  - Convert food bank addresses to point locations
-  - Create maps/visualisations of locations of food banks (in the UK and Oxfordshire)
-  - Calculate accessibility for walking, driving, and public transport using r5r package
-  - Identify areas with low accessibility to food banks, but a perceived high need (based on a couple of factors)
+-   Convert food bank addresses to point locations
+-   Create maps/visualisations of locations of food banks (in the UK and Oxfordshire)
+-   Calculate accessibility for walking, driving, and public transport using r5r package
+-   Identify areas with low accessibility to food banks, but a perceived high need (based on a couple of factors)
 :::
 
 ::: callout-note
 **Optional reading**
 
-- Pereira, R. et al., [r5r: Rapid Realistic Routing on Multimodal Transport Networks with R5 in R (2021)](https://doi.org/10.32866/001c.21262)
-- Allen, J. and Farber, S. [Changes in transit accessibility to food banks in Toronto during Covid-19 (2021)](https://doi.org/10.32866/001c.24072)
-- Higgins, C.D. et al. [Changes in accessibility to emergency and community food services during Covid-19 and implications for low income populations in Hamilton, Ontario (2021)](https://pubmed.ncbi.nlm.nih.gov/34655939/)
+-   Pereira, R. et al., [r5r: Rapid Realistic Routing on Multimodal Transport Networks with R5 in R (2021)](https://doi.org/10.32866/001c.21262)
+-   Allen, J. and Farber, S. [Changes in transit accessibility to food banks in Toronto during Covid-19 (2021)](https://doi.org/10.32866/001c.24072)
+-   Higgins, C.D. et al. [Changes in accessibility to emergency and community food services during Covid-19 and implications for low income populations in Hamilton, Ontario (2021)](https://pubmed.ncbi.nlm.nih.gov/34655939/)
 :::
 
-### Convert food bank addresses to point locations
+## Convert food bank addresses to point locations
 
-Firstly, load the R packages needed for the practical. You may need to install some of these for the first time. 
+Firstly, load the R packages needed for the practical. You may need to install some of these for the first time.
 
 ```{r packages}
 #Load relevant packages
@@ -55,19 +55,19 @@ library(tidygeocoder)
 library(tidytransit) #for public transport
 ```
 
-### Load the spatial data 
+### Load the spatial data
 
-We need to load the spatial data for different spatial scales. This polygons data will be used for creating maps and calculating accessibility to food banks centres. These were downloaded from the [Open Geography Portal](https://geoportal.statistics.gov.uk) (from the Office for National Statistics). 
+We need to load the spatial data for different spatial scales. This polygons data will be used for creating maps and calculating accessibility to food banks centres. These were downloaded from the [Open Geography Portal](https://geoportal.statistics.gov.uk) (from the Office for National Statistics).
 
-+ Lower super output area (LSOA) scale 
-+ Local authority scale
-+ Entire country scale
+-   Lower super output area (LSOA) scale
+-   Local authority scale
+-   Entire country scale
 
 There are 35,672 LSOAs (for England and Wales)
 
 ```{r load LSOAs}
 #2021 shape file for LSOAs
-LSOA_2021 <- st_read("LSOA_2021/LSOA_(Dec_2021)_Boundaries_Generalised_Clipped_EW_(BGC).shp") %>%
+LSOA_2021 <- st_read("prac5_data/LSOA_2021/LSOA_(Dec_2021)_Boundaries_Generalised_Clipped_EW_(BGC).shp") %>%
   st_transform(., 27700) %>%
   clean_names() 
 ```
@@ -76,14 +76,14 @@ There are 374 local authorities (for the UK)
 
 ```{r load Local Authority districts}
 #2022 shape file for LAs
-LA_2022 <- st_read("LA_2022/LAD_MAY_2022_UK_BFE_V3.shp") %>%
+LA_2022 <- st_read("prac5_data/LA_2022/LAD_MAY_2022_UK_BFE_V3.shp") %>%
   st_transform(., 27700) %>%
   clean_names() 
 ```
 
 ```{r load country borders}
 #2023 shape file for UK
-UK_border <- st_read("UK_2023/CTRY_DEC_2023_UK_BUC.shp") %>%
+UK_border <- st_read("prac5_data/UK_2023/CTRY_DEC_2023_UK_BUC.shp") %>%
   st_transform(., 27700) %>%
   clean_names() 
 ```
@@ -94,7 +94,7 @@ Next, we load the Trussell food bank data with addresses (this data was provided
 
 ```{r locations of Trussell food banks}
 #locations of food banks from TT
-TT_foodbanks <- read_excel("Food banks Feb23.xlsx") %>%
+TT_foodbanks <- read_excel("prac5_data/Food banks Feb23.xlsx") %>%
   clean_names()
 ```
 
@@ -111,6 +111,8 @@ TT_foodbanks <- TT_foodbanks %>%
 ```
 
 Next, we derive the point locations from postcodes. Unfortunately, the approach below only allows 100 locations at a time to be converted.
+
+The function `lapply` used in these code chunks applies a function over a list or vector. We are applying it to a list of postcodes.
 
 ```{r locations of TT food banks 1, include = TRUE}
 TT_foodbanks1 <- TT_foodbanks[1:100, ]
@@ -519,9 +521,9 @@ TT_foodbank_location_points <- rbind(TT_foodbank_location_points1, TT_foodbank_l
 nrow(TT_foodbanks) - nrow(TT_foodbank_location_points)
 ```
 
-This process has lost 42 food bank centres as postcode could not be recognised/matched with a longitude and latitude. 
+This process has lost 42 food bank centres as postcode could not be recognised/matched with a longitude and latitude.
 
-We need to join the point location to the other information on the food bank centres like the centre's name and the operating model etc. 
+We need to join the point location to the other information on the food bank centres like the centre's name and the operating model etc.
 
 ```{r editing Trussell location df}
 #removing white space from postcodes in order to merge with more information
@@ -543,9 +545,9 @@ TT_foodbank_location_points <- TT_foodbank_location_points %>%
 
 ### Create a map of Trussell food bank locations in the UK
 
-Now we have the point location of Trussell centres, we can use the tmap package to visualise *where* the Trussell food bank centres are across the UK by making a simple map. 
+Now we have the point location of Trussell centres, we can use the tmap package to visualise *where* the Trussell food bank centres are across the UK by making a simple map.
 
-```{r where are the food banks?}
+```{r where are the food banks}
 TT_foodbank_location_points <- TT_foodbank_location_points %>%
   st_transform(., 27700) 
 
@@ -572,11 +574,11 @@ Plain_map
 ::: callout-note
 **Questions**
 
-- What does this tell up about the spatial distribution of food banks?
-- What could be added to this map to enhance the visualisation?
+-   What does this tell up about the spatial distribution of food banks?
+-   What could be added to this map to enhance the visualisation?
 :::
 
-### Create a map of Trussell food bank locations in Oxford and Oxfordshire
+## Create a map of Trussell food bank locations in Oxford and Oxfordshire
 
 Let's zoom in on Oxford and the surrounding area.
 
@@ -640,13 +642,13 @@ Oxford_map
 
 We see only seven food bank centres across the region, and no food bank centres in the City of Oxford itself, so we look at other sources of data to see if this is true.
 
-#### Give Food food bank data
+### Give Food food bank data
 
-Give Food is an open access database with information on food banks in the UK. Next, load the food bank data with addresses (from [Give Food](https://github.com/givefood/data)). However, these are food banks and not distribution centres. 
+Give Food is an open access database with information on food banks in the UK. Next, load the food bank data with addresses (from [Give Food](https://github.com/givefood/data)). However, these are food banks and not distribution centres.
 
 ```{r locations of food banks (not centres)}
 #data from give food
-give_food_foodbanks <- read_csv("foodbanks.csv") %>%
+give_food_foodbanks <- read_csv("prac5_data/foodbanks.csv") %>%
   clean_names()
 ```
 
@@ -761,7 +763,7 @@ Oxford_map
 
 If you hover over the food bank centres on the interactive map, information on the centre that is contained in the data frame will pop up in a box.
 
-Next we map the same data, but spilt the centres by network type. 
+Next we map the same data, but spilt the centres by network type.
 
 ```{r filter data by food network network and map it}
 trussell_Oxford <- Oxford_give_food_foodbanks %>%
@@ -806,7 +808,7 @@ Oxford_map <-
 Oxford_map
 ```
 
-Examining this data informs us that there are more food banks in the area than simply Trussell centres. However, before 
+Examining this data informs us that there are more food banks in the area than simply Trussell centres. However, before
 
 ```{r map all food banks}
 #change mode from interactive to static
@@ -844,24 +846,25 @@ Oxford_map <-
 Oxford_map
 ```
 
+## Calculate accessibility for walking, driving, and public transport using r5r package
 
-### Calculate accessibility for walking, driving, and public transport using r5r package
-
-r5r is an R package for rapid realistic routing on multi-modal transport networks (walk, bike, public transport and car). 
+r5r is an R package for rapid realistic routing on multi-modal transport networks (walk, bike, public transport and car).
 
 To use r5r, we will need:
 
-  + A road network data set from OpenStreetMap in .pbf format (mandatory)
-  + A public transport feed in GTFS.zip format (optional)
-  + A raster file of Digital Elevation Model data in .tif format (optional)
+-   A road network data set from OpenStreetMap in .pbf format (mandatory)
+-   A public transport feed in GTFS.zip format (optional)
+-   A raster file of Digital Elevation Model data in .tif format (optional)
 
-Link to R package page: https://ipeagit.github.io/r5r/
+Link to R package page: <https://ipeagit.github.io/r5r/>.
 
-#### Centroids from LSOAs
+Please download the relevant GTFS.zip file for the UK for the public transport timetable data from [Mobility Database](https://mobilitydatabase.org).
 
-First we need to get the point locations for LSOA centroids for Oxford and the surrounding area. You can also download the population weighted centroids for LSOAs, but we are not using those today. 
+### Centroids from LSOAs
 
-Repeat the filtering process for LSOAs like we did for LAs. 
+First we need to get the point locations for LSOA centroids for Oxford and the surrounding area. You can also download the population weighted centroids for LSOAs, but we are not using those today.
+
+Repeat the filtering process for LSOAs like we did for LAs.
 
 ```{r filter LSOAs for Oxford and Oxfordshire}
 Oxford_LSOAs <- LSOA_2021 %>%
@@ -870,7 +873,7 @@ Oxford_LSOAs <- LSOA_2021 %>%
            str_detect(lsoa21nm, "Cherwell")) 
 ```
 
-```{r}
+```{r food bank maps for LSOA scale}
 #change mode from interactive to static
 tmap_mode("plot")
 
@@ -906,7 +909,7 @@ Oxford_map_LSOAs <-
 Oxford_map_LSOAs
 ```
 
-By mapping food bank centres are the LSOA scale rather than the LA scale, we can assume that they are usually located in more densely populated areas like towns/villages in the area. 
+By mapping food bank centres are the LSOA scale rather than the LA scale, we can assume that they are usually located in more densely populated areas like towns/villages in the area.
 
 ```{r centroids of LSOAs}
 sf_use_s2(FALSE)
@@ -957,7 +960,7 @@ points_d <- points_d[,c("id","lon","lat")]
 head(points_d,10)
 ```
 
-The next code chunk downloads the road network for the area. However, for this practical, it is included in the data provided (as is the timetable data for public transport). 
+The next code chunk downloads the road network for the area. However, for this practical, it is included in the data provided (as is the timetable data for public transport).
 
 ```{r download road network}
 # load libraries
@@ -976,7 +979,7 @@ The next code chunk downloads the road network for the area. However, for this p
 #EW_url[["url"]]
 ```
 
-Next we need to set up the r5r core. This sets up the road network and 
+Next we need to set up the r5r core. This sets up the road network and
 
 ```{r}
 # increase Java memory
@@ -987,7 +990,7 @@ library(r5r)
 
 #path <- system.file("r5r_path", package = "r5r")
 
-r5r_core <- setup_r5(data_path = ".")
+r5r_core <- setup_r5(data_path = "prac5_data/.")
 ```
 
 For this example, I set the maximum trip duration to 1 hour (60 minutes) and set the departure time at 2pm.
@@ -1049,11 +1052,11 @@ TTM_Oxford_drive <- travel_time_matrix(r5r_core,
                           max_trip_duration = max_trip_duration)
 ```
 
-We now have three modes of transport (measure of access) to food banks in the area - public transport, walking, and driving. As you can see many more LSOAs have access to a food bank centre within a one hour drive, compared to one hour walking or public transport. 
+We now have three modes of transport (measure of access) to food banks in the area - public transport, walking, and driving. As you can see many more LSOAs have access to a food bank centre within a one hour drive, compared to one hour walking or public transport.
 
 ### Getting minimum travel time
 
-Let's start with walking. 
+Let's start with walking.
 
 ```{r as some pairs have more than on value, lets select the minimum value}
 #select minimum value between pairs 
@@ -1075,7 +1078,7 @@ TTM_Oxford_walk <- TTM_Oxford_walk %>%
 head(TTM_Oxford_walk)
 ```
 
-The number of rows has decreased as not all LSOAs will have accessibility to a centre within one hour. Let's repeat this for driving and public transport. 
+The number of rows has decreased as not all LSOAs will have accessibility to a centre within one hour. Let's repeat this for driving and public transport.
 
 ```{r cleaning driving data}
 #select minimum value between pairs 
@@ -1109,7 +1112,7 @@ TTM_Oxford_PT <- TTM_Oxford_PT %>%
 head(TTM_Oxford_PT)
 ```
 
-Now we have the accessibility data in a usable form that we can join to our Oxford LSOAs data frame, we can calculate mean and minimum travel times for each LSOA for each mode of transport. 
+Now we have the accessibility data in a usable form that we can join to our Oxford LSOAs data frame, we can calculate mean and minimum travel times for each LSOA for each mode of transport.
 
 ```{r mean and min time from all OD pairs}
 #mean time
@@ -1136,7 +1139,7 @@ TTM_Oxford_PT$minimum_time_PT <- as.numeric(TTM_Oxford_PT$minimum_time_PT)
 TTM_Oxford_walk$minimum_time_walk <- as.numeric(TTM_Oxford_walk$minimum_time_walk)
 ```
 
-Now we need to join this to the Oxford LSOAs dataframe and map it. 
+Now we need to join this to the Oxford LSOAs dataframe and map it.
 
 ```{r rename column and select columns needed}
 #rename to from id columns for joining purposes
@@ -1232,15 +1235,15 @@ Travel_time_map <-
 Travel_time_map 
 ```
 
-From these three maps it is very clear that areas have unequal access to food bank centres, especially in the rural parts of Oxfordshire. However, do people in these areas of low accessibility need greater access to centres. 
+From these three maps it is very clear that areas have unequal access to food bank centres, especially in the rural parts of Oxfordshire. However, do people in these areas of low accessibility need greater access to centres.
 
-### Examining demand 
+## Examining demand
 
-In this last section we will examine two determinants of food bank use. Let's take housing tenure (socially rented homes) and disability. This is census data from 2021 at the LSOA scale. 
+In this last section we will examine two determinants of food bank use. Let's take housing tenure (socially rented homes) and disability. This is census data from 2021 at the LSOA scale.
 
 ```{r housing tenure}
 #Type of tenure of housing
-Tenure <- read_csv("Census 2021 data/Tenure.csv") %>%
+Tenure <- read_csv("prac5_data/Tenure.csv") %>%
   clean_names() %>%
   separate(lsoa21cd, c('lsoa_code', 'lsoa_name'), sep = ':') %>%
   mutate(lsoa_name = trimws(lsoa_name)) %>%
@@ -1263,9 +1266,9 @@ ggplot(Tenure,
  geom_density(alpha=.2, fill="#FF6666")
 ```
 
-```{r}
+```{r disability}
 #Disability under the Equality Act
-Disability <- read_csv("Census 2021 data/Disability.csv") %>%
+Disability <- read_csv("prac5_data/Disability.csv") %>%
   clean_names() %>%
   separate(lsoa, c('lsoa_code', 'lsoa_name'), sep = ':') %>%
   mutate(lsoa_name = trimws(lsoa_name)) %>%
@@ -1314,7 +1317,7 @@ Oxford_LSOAs <- Oxford_LSOAs %>%
             by = "lsoa21cd")
 ```
 
-Let's make a map of disability (% of households with one or more disabled person living there) and socially rented homes. 
+Let's make a map of disability (% of households with one or more disabled person living there) and socially rented homes.
 
 ```{r map for disability, echo=FALSE, include=TRUE}
 
@@ -1368,8 +1371,8 @@ mean(Tenure$social_rented, na.rm = TRUE)
 mean(Disability$disabled_under_the_equality_act, na.rm = TRUE)
 ```
 
-+ Socially renting - 16.9% of households
-+ Disability - 17.7% of households
+-   Socially renting - 16.9% of households
+-   Disability - 17.7% of households
 
 And what are the Oxford and surrounding area averages?
 
@@ -1379,10 +1382,10 @@ mean(Oxford_LSOAs$social_rented, na.rm = TRUE)
 mean(Oxford_LSOAs$disabled_under_the_equality_act, na.rm = TRUE)
 ```
 
-+ Socially renting - 14.5% of households
-+ Disability - 14.6% of households
+-   Socially renting - 14.5% of households
+-   Disability - 14.6% of households
 
-They are lower than the national averages. 
+They are lower than the national averages.
 
 Let's take a look for the three travel times too.
 
@@ -1429,16 +1432,10 @@ buffer <- Oxford_LSOAs %>%
 Underserved_map
 ```
 
-### Summary
+## Quick summary
 
 We can use accessibility tools and census data to assess where in an area is under-served to particular services.
 
-+ How would we improve this analysis?
-+ What are the limitations of the data used?
-+ How could we improve the visualisations?
-
-
-
-
-
-
+-   How would we improve this analysis?
+-   What are the limitations of the data used?
+-   How could we improve the visualisations?
