@@ -182,11 +182,11 @@
   {
     "objectID": "03_obesity.html",
     "href": "03_obesity.html",
-    "title": "3  Obesity",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
     "section": "",
-    "text": "AD / CC to add",
+    "text": "4 Introduction\nIn this practical we will learn how to explore the spatial distribution of points in the presence of covariates. We will use fast-food outlets and schools in London as an example. Fast-food outlets are known to contribute to childhood obesity, and their proximity to schools can have a significant impact on children’s health. By investigating the spatial distribution of fast-food outlets in relation to schools, we can identify areas where public health interventions are needed to reduce childhood obesity.",
     "crumbs": [
-      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Obesity</span>"
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
     ]
   },
   {
@@ -317,6 +317,186 @@
     "text": "Health data can be hard to find online. Here are some interesting datasets i have come across:\n\nUK Small area mental health index / other mental health data\nUK Understanding society health and wellbeing\nUK Police data (e.g. for looking at violence and mental wellbeing)",
     "crumbs": [
       "<span class='chapter-number'>6</span>  <span class='chapter-title'>Datasets</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#install-packages-if-you-need-to",
+    "href": "03_obesity.html#install-packages-if-you-need-to",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "5.1 Install packages (if you need to)",
+    "text": "5.1 Install packages (if you need to)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#load-packages",
+    "href": "03_obesity.html#load-packages",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "5.2 Load packages",
+    "text": "5.2 Load packages\n\nlibrary(classInt)\nlibrary(curl)\nlibrary(dbscan)\nlibrary(downloader)\nlibrary(dplyr)\nlibrary(fasterize)\nlibrary(foreign)\nlibrary(fpc)\nlibrary(fs)\nlibrary(geojsonio)\nlibrary(ggplot2)\nlibrary(h3jsr)\nlibrary(h3r)\nlibrary(here)\nlibrary(janitor)\nlibrary(osmdata)\nlibrary(osmextract)\nlibrary(plotly)\nlibrary(r5r)\nlibrary(raster)\nlibrary(readxl)\nlibrary(RColorBrewer)\nlibrary(sf)\nlibrary(sp)\nlibrary(spData)\nlibrary(spatstat)\nlibrary(spatstat.geom)\nlibrary(stars)\nlibrary(terra)\nlibrary(tidyterra)\nlibrary(tidyverse)\nlibrary(tmap)\nlibrary(tmaptools)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#import-necessary-data",
+    "href": "03_obesity.html#import-necessary-data",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "5.3 Import necessary data",
+    "text": "5.3 Import necessary data\nFirst some boundary data for London which may come in useful later.\n\n5.3.1 Read in shapefile of London\n\n# Define the URL of the ZIP file\nurl &lt;- \"https://data.london.gov.uk/download/statistical-gis-boundary-files-london/9ba8c833-6370-4b11-abdc-314aa020d5e0/statistical-gis-boundaries-london.zip\"\n\n# Function to download, extract, and load a shapefile\nload_shapefile &lt;- function(zip_url, shapefile_relative_path) {\n  temp &lt;- tempfile(fileext = \".zip\")\n  curl_download(zip_url, temp)\n  \n  temp_dir &lt;- tempfile()\n  dir.create(temp_dir)\n  unzip(temp, exdir = temp_dir)\n  \n  shapefile_path &lt;- file.path(temp_dir, shapefile_relative_path)\n  \n  if (!file.exists(shapefile_path)) {\n    stop(paste(\"Shapefile not found:\", shapefile_relative_path))\n  }\n  \n  return(st_read(shapefile_path))\n}\n\n# Load London Boroughs shapefile\nlondon_boroughs &lt;- load_shapefile(url, \"statistical-gis-boundaries-london/ESRI/London_Borough_Excluding_MHW.shp\") %&gt;% \nst_transform(london_boroughs, crs = 4326)\n\nReading layer `London_Borough_Excluding_MHW' from data source \n  `C:\\Users\\Andy\\AppData\\Local\\Temp\\RtmpeCm2z4\\file495c3ebc3335\\statistical-gis-boundaries-london\\ESRI\\London_Borough_Excluding_MHW.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 33 features and 7 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 503568.2 ymin: 155850.8 xmax: 561957.5 ymax: 200933.9\nProjected CRS: OSGB36 / British National Grid\n\nqtm(london_boroughs)\n\n\n\n\n\n\n\n# Load LSOA shapefile\nlondon_LSOA &lt;- load_shapefile(url, \"statistical-gis-boundaries-london/ESRI/LSOA_2011_London_gen_MHW.shp\") %&gt;% \nst_transform(london_boroughs, crs = 4326)\n\nReading layer `LSOA_2011_London_gen_MHW' from data source \n  `C:\\Users\\Andy\\AppData\\Local\\Temp\\RtmpeCm2z4\\file495c58a91ca9\\statistical-gis-boundaries-london\\ESRI\\LSOA_2011_London_gen_MHW.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 4835 features and 14 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 503574.2 ymin: 155850.8 xmax: 561956.7 ymax: 200933.6\nProjected CRS: OSGB36 / British National Grid\n\ntmap_options(check.and.fix = TRUE)\nqtm(london_LSOA)\n\n\n\n\n\n\n\n\n\n\n5.3.2 Download and read in the Index of Multiple Deprivation (IMD) data\n\n#Load Index of Multiple Deprivation data. This can either be accessed from the CDRC website or downloaded directly from the government website.\n#Downloaded data from the CDRC Index of Multiple Deprivation (IMD) website: https://data.cdrc.ac.uk/dataset/index-multiple-deprivation-imd/resource/data-english-imd-2019\n#English IMD 2019. 2011 LSOA geography. Shapefile format.\n\n#IMD_London &lt;- st_read(here::here(\"data\",\"English IMD 2019\", \"IMD_2019.shp\")) %&gt;%\n#  clean_names()%&gt;%\n#  dplyr::filter(str_detect(la_dcd, \"^E09\"))\n\nIMD_London &lt;- st_read(\"https://services-eu1.arcgis.com/EbKcOS6EXZroSyoi/arcgis/rest/services/Indices_of_Multiple_Deprivation_(IMD)_2019/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson\") %&gt;%\n  st_transform(27700) %&gt;% \n  clean_names() %&gt;%\n  dplyr::filter(str_detect(la_dcd, \"^E09\"))\n\nReading layer `OGRGeoJSON' from data source \n  `https://services-eu1.arcgis.com/EbKcOS6EXZroSyoi/arcgis/rest/services/Indices_of_Multiple_Deprivation_(IMD)_2019/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson' \n  using driver `GeoJSON'\nSimple feature collection with 32844 features and 66 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -6.418524 ymin: 49.86474 xmax: 1.762942 ymax: 55.81107\nGeodetic CRS:  WGS 84\n\n#Plot to see IMD deciles and check if all is correct\ntmap_options(check.and.fix = TRUE)\n\ntmap_mode(\"plot\")\n\n#Plot map\nmap &lt;- tm_shape(IMD_London) +\n  tm_polygons(col = \"imd_decile\", \n              style = \"pretty\", \n              n = 10, \n              palette = \"RdYlBu\", \n              title = \"IMD Decile\", \n              border.alpha = 0) +\n  tm_layout(legend.position = c(\"right\", \"bottom\")) \n\n# +\n#   tm_shape(lnd_ff_pts) +\n#   tm_dots(col = \"black\",\n#           size = 0.05,   \n#           border.lwd = 0, \n#           title = \"Fast-food outlets\",  # Label for the dots\n#           legend.show = TRUE)  \n\nmap\n\n\n\n\n\n\n\n\n\n\n5.3.3 Load Fast-food points from Open Street Map (OSM)\nAs mentioned in the lecture, Open Street Map (OSM) is a great source of geospatial data. Here we will use the osmdata package to query OSM for fast-food outlets in London.\nLater on in the practical we will ask you to find alternative points to analyse. Knowing what to search for can be a bit tricky, but the osmdata package has a function called available_features() which can be used to search for different types of points of interest. You can also use the available_tags() function to search for tags related to amenities.\nYou can also visit the OSM wiki to find out more about the different types of features and tags available - https://wiki.openstreetmap.org/wiki/Map_features or indeed, the main OSM page - https://www.openstreetmap.org/#map=13/51.49656/-0.05897\nThe osmdata package uses the Overpass Turbo API, which an also be used directly to download data here - https://overpass-turbo.eu/\n\n# Load the required libraries\n# Load the required libraries\nlibrary(DT)\n\nfeatures &lt;- available_features() # Search for features in London\ntags &lt;- available_tags(\"amenity\") # Search for tags related to amenities\n\n\ntags_df &lt;- data.frame(\n  Tag = tags, # Add the tags directly to the 'Tag' column\n  Description = NA # Placeholder column for descriptions (optional)\n)\n\n# Display the data frame as a DT table\ndatatable(\n  tags_df,# Select only the first 5 rows\n  options = list(pageLength = 10), # Display 5 rows\n  rownames = FALSE\n)\n\n\n\n\n\nUsing the feature tags in OSM, we can download data on fast food outlets directly.\n\n# Define the geographic area (example: Greater London)\nBounding_box &lt;- getbb(\"Greater London\")  # Bounding box for London\n\n# Query OSM for fast food locations\nfast_food &lt;- opq(Bounding_box) %&gt;%\n  add_osm_feature(key = \"amenity\", value = \"fast_food\") %&gt;%\n  osmdata_sf()\n\n# Extract point locations (fast food outlets)\nfast_food_points &lt;- fast_food$osm_points %&gt;% \n  st_transform(4326) %&gt;% \n  mutate(opps = 1)\n\n# View first few rows\n#head(fast_food_points)\n\n#Filter out the points outside of our study area\nfast_food_points &lt;- fast_food_points[london_boroughs,]\n\n# Plot fast food outlets\n#plot(st_geometry(fast_food_points), col = \"red\", pch = 20, main = \"Fast Food Outlets in London\")\n\ntmap_mode(\"plot\")\nmap &lt;- tm_shape(fast_food_points) +\n  tm_dots(col = \"black\",\n          size = 0.05,   \n          border.lwd = 0, \n          title = \"Fast-food outlets\",  # Label for the dots\n          legend.show = TRUE)\n\nmap",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#load-school-points-from-open-street-map-osm",
+    "href": "03_obesity.html#load-school-points-from-open-street-map-osm",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "5.4 Load school points from Open Street Map (OSM)",
+    "text": "5.4 Load school points from Open Street Map (OSM)\nSchool data are also available on OSM, however the tags are not that useful for distinguishing between different types of schools. The amenity tag can be used to search for schools, but this will return all types of schools (e.g., primary, secondary, etc.).\nPrimary schools can be filtered in London with the isced:level tag, but this is not always available. We will show you how to get the schools from OSM, but below we we also use an alternative method for accessing point data.\n\n5.4.0.1 Bonus Extra Task - not required\nSee if you can think of a way of filtering out secondary schools from the tags available in OSM - you may need to use the filter() function in R to do this.\n\n# Define the geographic area (example: Greater London)\nBounding_box &lt;- getbb(\"Greater London\")  # Bounding box for London\n\n# Query OSM for school locations\nschools &lt;- opq(Bounding_box) %&gt;%\n  add_osm_feature(key = c(\"amenity\"), value = \"school\") %&gt;%\n  osmdata_sf()\n\n# Extract point locations (schools)\nschools_points &lt;- schools$osm_points %&gt;% \n  st_transform(4326) %&gt;% \n  mutate(opps = 1)\n\n# View first few rows\n#head(schools_points)\n\n#Filter out the schools outside of our study area\nschools_points &lt;- schools_points[london_boroughs,]\n\n# Plot schools\n#plot(st_geometry(schools_points), col = \"blue\", pch = 20, main = \"Schools in London\")\n\ntmap_mode(\"plot\")\nmap &lt;- tm_shape(schools_points) +\n  tm_dots(col = \"black\",\n          size = 0.05,   \n          border.lwd = 0, \n          title = \"All Schools London\",  # Label for the dots\n          legend.show = TRUE)\n\nmap\n\n\n\n\n\n\n\n\n\n\n5.4.1 Alternative Method for Accessing School Points\nAlternatively, the Department for Education’s Edubase database contains information for all schools - https://get-information-schools.service.gov.uk/ - here we read that data in and filter for secondary schools in London.\nThe crucial thing to note here is that the data is in British National Grid format, so we may need to transform it to WGS84 (EPSG 4326) to match the other data we have. However, we know it is in British National Grid as the data contains two columns - “easting” and “northing” - which is the standard way of referencing x and y coordinates in our projected coordinate reference system.\nIn the code below, we use the st_as_sf() function to convert the data to an sf object, and then the st_set_crs() function to set the coordinate reference system to British National Grid (EPSG 27700).\nWe are downloading and processing the data in one block, however, if you are not familiar with the column headers and the data contained in a file, always download and open it in excel first to get a sense of the contents.\n\nlondon_sec_schools &lt;- read_csv(\"https://www.dropbox.com/scl/fi/fhzafgt27v30lmmuo084y/edubasealldata20241003.csv?rlkey=uorw43s44hnw5k9js3z0ksuuq&raw=1\") %&gt;% \n  clean_names() %&gt;% \n  filter(gor_name == \"London\") %&gt;% \n  filter(phase_of_education_name == \"Secondary\") %&gt;% \n  filter(establishment_status_name == \"Open\") %&gt;%\n  st_as_sf(., coords = c(\"easting\", \"northing\")) %&gt;% \n  st_set_crs(27700)\n\nschools_points &lt;- london_sec_schools\n\ntmap_mode(\"view\")\nmap &lt;- tm_shape(schools_points) +\n  tm_dots(col = \"black\",\n          size = 0.05,   \n          border.lwd = 0, \n          title = \"All Schools London\",  # Label for the dots\n          legend.show = TRUE)\n\nmap",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#creating-point-pattern-process-ppp-objects",
+    "href": "03_obesity.html#creating-point-pattern-process-ppp-objects",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "5.5 Creating Point Pattern Process (PPP) Objects",
+    "text": "5.5 Creating Point Pattern Process (PPP) Objects\nIn order to carry out spatial point pattern analysis, we need to convert our spatial data into point pattern objects. We will use the spatstat package to create point pattern objects from our fast-food and school locations. We also need to make sure that all of our coordinates are in British National Grid (EPSG 27700) - a Projected Coordinate Reference System (CRS) for the UK as spatstat requires will not work on geographic coorinate systems like wgs84 (CRS: 4326).\nCreate some Point Pattern Process objects:\n\n# Project schools and fast food outlets to British National Grid CRS\nlnd_sch_bng &lt;- st_transform(schools_points, 27700)\nlnd_ff_bng &lt;- st_transform(fast_food_points, 27700)\nlnd_bng &lt;- st_transform(london_boroughs, 27700)\n\n# Summarize the transformed school points\n#summary(lnd_sch_bng)\n\n# Convert schools and fast food locations to PPP objects for spatial analysis\nlnd_sch_ppp &lt;- as.ppp(lnd_sch_bng)\nlnd_ff_ppp &lt;- as.ppp(lnd_ff_bng)\n\n# Remove marks (attributes) from the PPP objects\nmarks(lnd_sch_ppp) &lt;- NULL\nmarks(lnd_ff_ppp) &lt;- NULL\n\n# Convert London borough boundaries to observation window format\nlnd_owin &lt;- as.owin(lnd_bng)\n\n# Assign the observation window to the fast food PPP object\nWindow(lnd_ff_ppp) &lt;- lnd_owin\n\n# Plot the fast food point pattern objects\nplot(lnd_ff_ppp)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#imd-index-of-multiple-deprivation-analysis",
+    "href": "03_obesity.html#imd-index-of-multiple-deprivation-analysis",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "5.6 IMD (Index of Multiple Deprivation) Analysis",
+    "text": "5.6 IMD (Index of Multiple Deprivation) Analysis\nThe aim of this analysis is to investigate whether areas with higher levels of deprivation have a greater density of fast-food outlets. This will help us determine if there are inequalities in fast-food outlet distribution based on area level deprivation - and if so, in which areas public health interventions should be prioritised.\n\n5.6.1 Creating a Raster from IMD Data\n\n# Convert the IMD shapefile into a raster format for analysis\nIMD_London_raster &lt;- st_rasterize(IMD_London %&gt;% dplyr::select(imd_decile, geometry))\n# Plot the generated raster\nplot(IMD_London_raster)\n\n\n\n\n\n\n\n# Convert the raster to an IM object for statistical analysis\nIMD_London_im &lt;- as.im(IMD_London_raster)\n# Plot the IM object\nplot(IMD_London_im)\n\n\n\n\n\n\n\n\n\n\n5.6.2 Quadrat Analysis on Fast Food Locations\nWe can carry out a quadrat count analysis to assess the spatial distribution of fast-food outlets in relation to area level deprivation. As you saw in previous practicals on this course, usually a quadrat analysis divides the study area into a grid of equal-sized squares (quadrats) and counts the number of points in each quadrat. Here we use IMD deciles as our ‘quadrat’ areas in exactly the same way. The quadrat count analysis can help us determine if fast-food outlets are clustered, dispersed, or randomly distributed in areas with different levels of deprivation.\n\n# Set up the graphical parameters for a better layout\npar(mar = c(4, 4, 2, 2))  # Adjust margins for visualization\n\ndev.new()  # Open a new plotting window to visualize the quadrat analysis\n\n# Perform quadrat count analysis to assess spatial distribution\nquad_ff_IMD &lt;- quadratcount(lnd_ff_ppp, tess = IMD_London_im)\n\n# Display quadrat count results\nquad_ff_IMD\n\ntile\n   1    2    3    4    5    6    7    8    9   10 \n 272 2465 2787 2246 1703 1390 1466  904  935  295 \n\n#test if significant clustering\nchisq.test(quad_ff_IMD)\n\n\n    Chi-squared test for given probabilities\n\ndata:  quad_ff_IMD\nX-squared = 4704.5, df = 9, p-value &lt; 2.2e-16\n\n\n\n# Plot the quadrat count analysis\nplot(quad_ff_IMD)\n\n\n\n\n\n\n\n\n\n5.6.2.1 Question - What does the quadrat analysis tell you about the spatial distribution of fast-food outlets in relation to area level deprivation?",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#density-estimation-with-rho-hat-plot",
+    "href": "03_obesity.html#density-estimation-with-rho-hat-plot",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "5.7 Density Estimation with Rho-Hat Plot",
+    "text": "5.7 Density Estimation with Rho-Hat Plot\nAs we saw in the lecture, we can take our analysis a little further by estimating the intensity of fast-food outlets across different levels of deprivation. The rho-hat function in spatstat estimates the intensity of point patterns as a continuous function of a covariate (rather than a discrete class).\n\n# Generate and plot the rho-hat function to assess intensity variation by area level deprivation\nplot(rhohat(lnd_ff_ppp, IMD_London_im))\n\n\n\n\n\n\n\n\n\n5.7.0.1 Question - What does the rho-hat plot tell you about the intensity of fast-food outlets across different levels of deprivation?\n\n\n5.7.0.2 Question - why do you think this plot has a series of peaks and troughs?\nIn the above plot we used IMD deciles to explore the intensity of fast-food outlets across different levels of deprivation. The IMD, however, has a raw score associated with it as well that we can examine\n\n# Convert the IMD shapefile into a raster format for analysis\nimd_ldn_score_raster &lt;- st_rasterize(IMD_London %&gt;% dplyr::select(imd_score, geometry))\n\n# Plot the generated raster\n#plot(imd_ldn_score_raster)\n\n# Convert the raster to an IM object for statistical analysis\nIMD_ldn_score_im &lt;- as.im(imd_ldn_score_raster)\n\n# Plot the IM object\nplot(IMD_ldn_score_im)\n\n\n\n\n\n\n\n\n\nplot(rhohat(lnd_ff_ppp, IMD_ldn_score_im))",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#setup-r5-environment",
+    "href": "03_obesity.html#setup-r5-environment",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.1 Setup R5 Environment",
+    "text": "8.1 Setup R5 Environment\n\n# give yourself a bit more memory\noptions(java.parameters = \"-Xmx20G\")\n# Initialize Java Virtual Machine\nrJava::.jinit()\nrJava::.jcall(\"java.lang.System\", \"S\", \"getProperty\", \"java.version\")\n  # Set memory allocation\n\n# Load OpenStreetMap data for London\noe_match(\"London, England\")\nroads_london = oe_get(\"London, England\", stringsAsFactors = FALSE, quiet = TRUE)\nnames(roads_london)\n#summary(roads_london)\n\n# Filter major road types\nht = c(\"motorway\", \"trunk\", \"primary\", \"secondary\", \"tertiary\", \"residential\", \"unclassified\")\nosm_London_maj_roads = roads_london[roads_london$highway %in% ht, ]\n#plot(osm_London_maj_roads[\"highway\"], key.pos = 1)\n#plot(sf::st_geometry(roads_london))\n\n\nosm_download &lt;- list.files(oe_download_directory())\n\nosm_file &lt;- paste0(oe_download_directory(),\"\\\\\",\"geofabrik_greater-london-latest.osm.pbf\")\n\nfile.copy(from=osm_file, to=here(), \n          overwrite = TRUE, recursive = FALSE, \n          copy.mode = TRUE)\n\n# Setup R5 transport network\nhere()\nr5r_core &lt;- setup_r5(here())",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#reproject-data-to-a-consistent-crs-epsg-4326",
+    "href": "03_obesity.html#reproject-data-to-a-consistent-crs-epsg-4326",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.2 Reproject Data to a Consistent CRS (EPSG 4326)",
+    "text": "8.2 Reproject Data to a Consistent CRS (EPSG 4326)\n\n# Convert spatial data to EPSG 4326\nschool_points_EPSG &lt;- schools_points %&gt;% \n  st_transform(4326) %&gt;% \n  mutate(opps = 1) %&gt;% \n  mutate(id = row_number())\n\nfastfood_points_EPSG &lt;- fast_food_points %&gt;% \n  st_transform(4326) %&gt;% \n  mutate(opps = 1)\n\nlondon_boroughs_EPSG &lt;- london_boroughs %&gt;% \n  st_transform(4326)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#filter-data-for-the-borough-of-croydon-only",
+    "href": "03_obesity.html#filter-data-for-the-borough-of-croydon-only",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.3 Filter Data for the Borough of Croydon Only",
+    "text": "8.3 Filter Data for the Borough of Croydon Only\n\n# Extract Croydon boundary\ncroydon &lt;- london_boroughs_EPSG %&gt;% \n  filter(GSS_CODE == \"E09000008\")\n\n# Extract Croydon-specific school and fast food locations\ncroydon_sch_pts &lt;- school_points_EPSG[croydon,]\ncroydon_ff_pts &lt;- fastfood_points_EPSG[croydon,]",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#generate-hexagonal-grid-for-croydon",
+    "href": "03_obesity.html#generate-hexagonal-grid-for-croydon",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.4 Generate Hexagonal Grid for Croydon",
+    "text": "8.4 Generate Hexagonal Grid for Croydon\n\ncroydon_h3 &lt;- polygon_to_cells(croydon, res = 11, simple = FALSE)\ncroydon_h3 &lt;- cell_to_polygon(unlist(croydon_h3$h3_addresses), simple = FALSE)\ncroydon_h3_centroids &lt;- st_centroid(croydon_h3)\n\n# Summarize and visualize the hexagonal grid\n#summary(croydon_h3)\n\n# ggplot() +\n#   geom_sf(data = croydon, fill = NA) +\n#   geom_sf(data = croydon_h3, fill = NA, colour = 'red') +\n#   ggtitle('Resolution 10 hexagons', subtitle = 'Croydon') +\n#   theme_minimal() +\n#   coord_sf()\n\ntm_shape(croydon) +\n  tm_polygons(col = \"red\", alpha = 0) +\ntm_shape(croydon_h3) +\n  tm_polygons(col = NA, alpha = 0) +\ntm_shape(croydon_ff_pts) +\n  tm_dots(col = \"blue\", border.lwd = 0) + \ntm_shape(croydon_sch_pts) +\n  tm_dots(col = \"black\", border.lwd = 0)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#travel-time-matrix-calculation",
+    "href": "03_obesity.html#travel-time-matrix-calculation",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.5 Travel Time Matrix Calculation",
+    "text": "8.5 Travel Time Matrix Calculation\n\n# Prepare data for travel time calculations\ncroydon_sch = croydon_sch_pts %&gt;% st_drop_geometry()\ncroydon_h3_centroids[c(\"x\", \"y\")] = st_coordinates(croydon_h3_centroids)\n\n# Assign IDs\ncroydon_h3_centroids &lt;- mutate(croydon_h3_centroids, id = row_number())\ncroydon_h3 &lt;- mutate(croydon_h3, id = row_number())\n\n# Define travel parameters\nmode = c(\"WALK\")\nmax_walk_time = 30  # Maximum walking time in minutes\nmax_trip_duration = 120  # Maximum trip duration in minutes\ndeparture_datetime = as.POSIXct(\"01-12-2022 8:30:00\", format = \"%d-%m-%Y %H:%M:%S\")\n\n# Compute travel time matrix\nttm_croydon_h3 = travel_time_matrix(\n  r5r_core = r5r_core,\n  origins = croydon_sch_pts,\n  destinations = croydon_h3_centroids,\n  mode = mode,\n  departure_datetime = departure_datetime,\n  max_walk_time = max_walk_time,\n  max_trip_duration = max_trip_duration\n)\n\n#head(ttm_croydon_h3)\n#nrow(ttm_croydon_h3)\n#summary(ttm_croydon_h3)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#identify-closest-schools-by-travel-time",
+    "href": "03_obesity.html#identify-closest-schools-by-travel-time",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.6 Identify Closest Schools by Travel Time",
+    "text": "8.6 Identify Closest Schools by Travel Time\n\n# Find minimum travel time per destination\nclosest = aggregate(ttm_croydon_h3$travel_time_p50, by = list(ttm_croydon_h3$to_id), FUN = min, na.rm = TRUE)\nsummary(closest)\n\n# Rename columns\nclosest &lt;- rename(closest, id = Group.1, time = x)\nclosest[\"id\"] = as.integer(closest$id)\nhead(closest)\n\n# Join spatial data with travel time results\ngeo = inner_join(croydon_h3_centroids, closest, by = \"id\")\ngeo_hex = inner_join(croydon_h3, closest, by = \"id\")\nhead(geo)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#visualizing-travel-time-data",
+    "href": "03_obesity.html#visualizing-travel-time-data",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.7 Visualizing Travel Time Data",
+    "text": "8.7 Visualizing Travel Time Data\n\ntm_shape(geo) +  \n  tm_symbols(col = \"time\", size = 0.05, border.lwd = 0, style = \"pretty\", n = 10, palette = \"RdYlBu\", alpha = 0.3) +  \ntm_shape(croydon_sch_pts) +\n  tm_dots(col = \"black\", border.lwd = 0) +  \ntm_shape(croydon) +\n  tm_polygons(alpha = 0)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#convert-data-to-british-national-grid-epsg-27700-and-analyse-spatial-distribution",
+    "href": "03_obesity.html#convert-data-to-british-national-grid-epsg-27700-and-analyse-spatial-distribution",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.8 Convert Data to British National Grid (EPSG 27700) and Analyse Spatial Distribution",
+    "text": "8.8 Convert Data to British National Grid (EPSG 27700) and Analyse Spatial Distribution\n\n# Reproject spatial data\ngeo_hex_bng &lt;- st_transform(geo_hex, 27700)\n\n# Convert raster data\nraster_geo &lt;- st_rasterize(geo_hex_bng %&gt;% dplyr::select(time, geometry)) \nst_coordinates(raster_geo)\nplot(raster_geo, axes = T)\ngeo_hex_im &lt;- as.im(raster_geo)\nplot(geo_hex_im)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#quadrat-analysis-of-fast-food-locations",
+    "href": "03_obesity.html#quadrat-analysis-of-fast-food-locations",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.9 Quadrat Analysis of Fast Food Locations",
+    "text": "8.9 Quadrat Analysis of Fast Food Locations\n\n# Convert to spatial point pattern objects\ncroy_sch_bng &lt;- st_transform(croydon_sch_pts, 27700)\ncroy_ff_bng &lt;- st_transform(croydon_ff_pts, 27700) %&gt;% \n  select(c(\"osm_id\", \"name\", \"geometry\"))\ncroydon_bng &lt;- st_transform(croydon, 27700)\ncroy_ff_ppp &lt;- as.ppp(croy_ff_bng)\ncroydon_owin &lt;- as.owin(croydon_bng)\nWindow(croy_ff_ppp) &lt;- croydon_owin\n\n# Quadrat count analysis\nQ &lt;- quadratcount(croy_ff_ppp, nx= 6, ny=6)\nplot(croy_ff_ppp, pch=20, cols=\"grey70\", main=NULL); plot(Q, add=T)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#spatial-density-analysis",
+    "href": "03_obesity.html#spatial-density-analysis",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.10 Spatial Density Analysis",
+    "text": "8.10 Spatial Density Analysis\n\nplot(rhohat(croy_ff_ppp, geo_hex_im))",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
+    ]
+  },
+  {
+    "objectID": "03_obesity.html#kolmogorov-smirnov-test-for-spatial-distribution",
+    "href": "03_obesity.html#kolmogorov-smirnov-test-for-spatial-distribution",
+    "title": "3  Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London",
+    "section": "8.11 Kolmogorov-Smirnov Test for Spatial Distribution",
+    "text": "8.11 Kolmogorov-Smirnov Test for Spatial Distribution\n\nks_result &lt;- cdf.test(croy_ff_ppp, \"x\")\nprint(ks_result)",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span>"
     ]
   }
 ]
