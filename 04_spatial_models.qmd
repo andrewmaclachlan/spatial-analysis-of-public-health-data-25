@@ -27,7 +27,7 @@ This is the same has homework 1....
 
 -   Go to the [New Zealand spatial data portal](https://datafinder.stats.govt.nz/) and download the file Territorial Authority 2018 (generalised), [these are city or district councils](https://www.localcouncils.govt.nz/lgip.nsf/wpg_url/About-Local-Government-Local-Government-In-New-Zealand-Councils-roles-and-functions#TerritorialAuthorities(District%20and%20City%20Councils)). Make sure it's the Territorial Authority 2018 data **not** SA1.
 
--   Go to the [Stats NZ website](https://www.stats.govt.nz/information-releases/statistical-area-1-dataset-for-2018-census-updated-march-2020) and download the Statistical area 1 dataset for 2018 for the whole of New Zealand. **Download the csv this time**
+-   Go to the [Stats NZ website](https://www.stats.govt.nz/information-releases/statistical-area-1-dataset-for-2018-census-updated-march-2020) and download the Statistical area 1 dataset for 2018 for the whole of New Zealand. **Download the csv this time - the one that does not say *long* **
 
 The figure below explains the geographies of New Zealand, we could replicate this analysis for SA1 or SA2 data.
 

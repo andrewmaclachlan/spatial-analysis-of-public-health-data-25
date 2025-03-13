@@ -207,7 +207,7 @@ window.Quarto = {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./03_obesity.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Obesity</span></span></a>
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -321,7 +321,7 @@ Note
 <p>This is the same has homework 1….</p>
 <ul>
 <li><p>Go to the <a href="https://datafinder.stats.govt.nz/">New Zealand spatial data portal</a> and download the file Territorial Authority 2018 (generalised), <a href="https://www.localcouncils.govt.nz/lgip.nsf/wpg_url/About-Local-Government-Local-Government-In-New-Zealand-Councils-roles-and-functions#TerritorialAuthorities(District%20and%20City%20Councils)">these are city or district councils</a>. Make sure it’s the Territorial Authority 2018 data <strong>not</strong> SA1.</p></li>
-<li><p>Go to the <a href="https://www.stats.govt.nz/information-releases/statistical-area-1-dataset-for-2018-census-updated-march-2020">Stats NZ website</a> and download the Statistical area 1 dataset for 2018 for the whole of New Zealand. <strong>Download the csv this time</strong></p></li>
+<li><p>Go to the <a href="https://www.stats.govt.nz/information-releases/statistical-area-1-dataset-for-2018-census-updated-march-2020">Stats NZ website</a> and download the Statistical area 1 dataset for 2018 for the whole of New Zealand. <strong>Download the csv this time - the one that does not say <em>long</em> </strong></p></li>
 </ul>
 <p>The figure below explains the geographies of New Zealand, we could replicate this analysis for SA1 or SA2 data.</p>
 <div class="quarto-figure quarto-figure-center">
@@ -799,7 +799,7 @@ F-statistic: 61.86 on 2 and 65 DF,  p-value: 9.037e-16</code></pre>
 <pre><code># A tibble: 1 × 5
   statistic p.value autocorrelation method             alternative
       &lt;dbl&gt;   &lt;dbl&gt;           &lt;dbl&gt; &lt;chr&gt;              &lt;chr&gt;      
-1      1.41 0.00400           0.227 Durbin-Watson Test two.sided  </code></pre>
+1      1.41  0.0120           0.227 Durbin-Watson Test two.sided  </code></pre>
 </div>
 </div>
 <p>As you can see, the DW statistics for our model is 1.41, so some indication of autocorrelation, but perhaps nothing to worry about.</p>
@@ -912,7 +912,7 @@ F-statistic: 65.68 on 3 and 62 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre><code># A tibble: 1 × 5
   statistic p.value autocorrelation method             alternative
       &lt;dbl&gt;   &lt;dbl&gt;           &lt;dbl&gt; &lt;chr&gt;              &lt;chr&gt;      
-1      1.27       0           0.345 Durbin-Watson Test two.sided  </code></pre>
+1      1.27 0.00600           0.345 Durbin-Watson Test two.sided  </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">#and for future use, write the residuals out</span></span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>model3_residuals <span class="ot">&lt;-</span> model3 <span class="sc">%&gt;%</span></span>
@@ -1893,8 +1893,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./03_obesity.html" class="pagination-link" aria-label="Obesity">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Obesity</span></span>
+      <a href="./03_obesity.html" class="pagination-link" aria-label="Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Exploring the Spatial Distribution of Points in the Presence of Covariates - Fast-Food Outlets and Schools in London</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
